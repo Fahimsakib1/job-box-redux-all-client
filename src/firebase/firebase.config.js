@@ -10,13 +10,6 @@ const firebaseConfig = {
     storageBucket: process.env.REACT_APP_storageBucket ,
     messagingSenderId: process.env.REACT_APP_messagingSenderId,
     appId: process.env.REACT_APP_appId,
-    
-    // apiKey: "AIzaSyAuT-XitIOAHsJgSB5pV3gXhIJ9iBgbNOI",
-    // authDomain: "job-box-redux-all.firebaseapp.com",
-    // projectId: "job-box-redux-all",
-    // storageBucket: "job-box-redux-all.appspot.com",
-    // messagingSenderId: "17160205648",
-    // appId: "1:17160205648:web:3737493e2dcd0371456855"
 };
 
 // Initialize Firebase
