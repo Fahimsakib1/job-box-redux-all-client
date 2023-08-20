@@ -4,8 +4,8 @@ import { useForm, useWatch } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import toast from 'react-hot-toast'
 import { useDispatch, useSelector } from "react-redux";
-import { createUser, toggleUserCreateSuccess } from "../features/Auth/AuthSlice";
-
+import { createUser, googleLogin, toggleLoginSuccess, toggleUserCreateSuccess } from "../features/Auth/AuthSlice";
+import { FaGoogle } from 'react-icons/fa'
 
 
 
@@ -56,7 +56,7 @@ const Signup = () => {
   const authStates = useSelector(state => state.auth)
   // console.log("State Before Sign Up: ", authStates);
 
-  const {isLoading, isError, error, userSuccess} = authStates
+  const { isLoading, isError, error, email } = authStates
 
 
 
@@ -64,38 +64,43 @@ const Signup = () => {
   const onSubmit = (data) => {
     console.log(data);
     dispatch(createUser(data))
-
-    //sign up the user
-    // createUserWithEmailAndPassword(auth, data.email, data.password)
-    // .then(result => {
-    //   const user = result.user;
-    //   console.log("USER SIGN UP:", user);
-    //   toast.success("User Added successfully")
-    //   reset()
-    // })
-    // .catch(error => {
-    //   const errorMessage = error.message;
-    //   console.log('Error SIgn Up:', errorMessage);
-    //   toast.error("Can not add User")
-    // })
   };
-
-
-  useEffect(() => {
-   
-    if(!isLoading && userSuccess) {
-      toast.success("User Added Successfully...", {id: "AddUser"});
-      dispatch(toggleUserCreateSuccess())
-      reset();
-    }
-    if(!isLoading && isError) {
-      toast.error(error, {id: "AddUser"})
-    }
-  }, [userSuccess, isError, error]);
+  
+  const handleLogInByGoogle = () => {
+    dispatch(googleLogin())
+  }
 
 
 
-  // console.log("State After Sign Up: ", authStates);
+
+
+
+
+
+  
+
+    //signup successful hole home page e navigate korbe
+    useEffect(() => {
+      if (!isLoading && email) {
+        toast.success("Signup Successful...", { id: "SignUpUser" });
+        // dispatch(toggleLoginSuccess())
+        // dispatch(toggleUserCreateSuccess())
+        reset();
+        navigate('/')
+      }
+    }, [isLoading, isError, error, email]);
+  
+   //kono error hole error show korbe
+    useEffect(() => {
+      if (isError) {
+        toast.error(error)
+      }
+    }, [isError, error]);
+  
+
+
+
+
 
 
 
@@ -113,8 +118,8 @@ const Signup = () => {
         <img src={loginImage} className='flex md:h-[600px] h-full w-full' alt='' />
       </div>
       <div className='lg:mt-24 md:mt-12 w-1/2 grid place-items-center'>
-        <div className='bg-[#FFFAF4] rounded-lg grid place-items-center p-10'>
-          <h1 className='mb-10 font-medium text-2xl'>Sign up</h1>
+        <div className='bg-[#FFFAF4] grid place-items-center p-10 border-2 border-gray-400 rounded-md'>
+          <h1 className='mb-6 font-medium text-2xl'>Sign up</h1>
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className='space-y-3'>
               <div className='flex flex-col items-start'>
@@ -146,6 +151,7 @@ const Signup = () => {
                 </label>
                 <input
                   type='password'
+                  name='confirmPassword'
                   id='confirm-password'
                   {...register("confirmPassword")}
                 />
@@ -158,12 +164,29 @@ const Signup = () => {
                 >
                   Sign up
                 </button>
+
+
+                <button
+                  onClick={handleLogInByGoogle}
+                  className='mt-6 font-semibold border-2 border-gray-400 text-black hover:text-white py-2 rounded-full hover:border-teal-800 hover:bg-teal-800 w-full'
+                >
+                  <div className="flex justify-center items-center gap-x-2">
+                    <FaGoogle className="text-xl"></FaGoogle>
+                    <p>Sign Up With Google</p>
+                  </div>
+                </button>
+
+
+
+
+
+
               </div>
               <div>
                 <p>
                   Already have an account?{" "}
                   <span
-                    className='text-primary hover:underline cursor-pointer'
+                    className='text-primary font-bold hover:underline cursor-pointer'
                     onClick={() => navigate("/login")}
                   >
                     Login

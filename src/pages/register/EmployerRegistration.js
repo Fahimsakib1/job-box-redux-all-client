@@ -2,11 +2,16 @@ import React, { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { FaChevronLeft } from "react-icons/fa";
+import { useRegisterMutation } from "../../features/Auth/AuthAPI";
+import { toast } from "react-hot-toast";
+import { useSelector } from "react-redux";
+
+
 
 const EmployerRegistration = () => {
   const [countries, setCountries] = useState([]);
 
-  const { handleSubmit, register, control } = useForm();
+  const { handleSubmit, register, control, reset } = useForm();
   const term = useWatch({ control, name: "term" });
   const navigate = useNavigate();
 
@@ -21,7 +26,7 @@ const EmployerRegistration = () => {
     "Food & Dining",
     "Health & Medicine",
     "Home & Garden",
-    "IT Farm",
+    "IT Firm",
     "Legal & Financial",
     "Manufacturing, Wholesale, Distribution",
     "Merchants (Retail)",
@@ -39,9 +44,31 @@ const EmployerRegistration = () => {
       .then((data) => setCountries(data));
   }, []);
 
+
+
+
+
+  const {email} = useSelector(state => state.auth)
+  const [addEmployee, {isLoading, isError, isSuccess, error}] = useRegisterMutation()
+  console.log(isLoading, isSuccess, isError);
+  
   const onSubmit = (data) => {
     console.log(data);
+    addEmployee({...data, role:"employer" })
   };
+
+  useEffect(() => {
+    if (!isLoading && isSuccess) {
+      toast.success("Employee Added Successfully...", { id: "AddEmployee" });
+      reset();
+    }
+    if (!isLoading && isError) {
+      toast.error(error, { id: "AddEmployee" })
+    }
+  }, [isLoading, isSuccess, isError, error, reset]);
+
+
+
 
   return (
     <div className='pt-14'>
@@ -74,7 +101,7 @@ const EmployerRegistration = () => {
             <label className='mb-2' htmlFor='email'>
               Email
             </label>
-            <input type='email' id='email' disabled {...register("email")} />
+            <input type='email' id='email' className="text-gray-500 font-semibold" readOnly defaultValue={email} {...register("email")} />
           </div>
           <div className='flex flex-col w-full max-w-xs'>
             <h1 className='mb-3'>Gender</h1>

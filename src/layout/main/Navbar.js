@@ -2,8 +2,9 @@ import { signOut } from "firebase/auth";
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { toggleLogOutSuccess, userLogOut } from "../../features/Auth/AuthSlice";
+import { toggleLogOut, toggleLogOutSuccess, userLogOut } from "../../features/Auth/AuthSlice";
 import { toast } from "react-hot-toast";
+import auth from "../../firebase/firebase.config";
 
 
 
@@ -18,25 +19,31 @@ const Navbar = () => {
   const { pathname } = useLocation();
   const dispatch = useDispatch()
   const authStates = useSelector(state => state.auth);
-  const { email, isLoading, isError, error, logOutSuccess } = authStates
+  const { email, isLoading, logOutSuccess, role } = authStates
 
 
-  const  handleLogOut = () => {
-    dispatch(userLogOut())
+  const handleLogOut = () => {
+    // dispatch(userLogOut())
+    signOut(auth)
+      .then(() => {
+        dispatch(toggleLogOut())
+        navigate('/login')
+      })
   }
 
 
-  useEffect(() => {
-    
-    if(!isLoading && logOutSuccess) {
-      toast.success("Logout Successful...", {id: "LogOut"});
-      dispatch(toggleLogOutSuccess())
-      navigate('/login')
-    }
-    if(!isLoading && isError) {
-      toast.error(error, {id: "LogOut"})
-    }
-  }, [isLoading, logOutSuccess, isError, error]);
+
+  // useEffect(() => {
+
+  //   if(!isLoading && logOutSuccess) {
+  //     toast.success("Logout Successful...", {id: "LogOut"});
+  //     dispatch(toggleLogOutSuccess())
+  //     navigate('/login')
+  //   }
+  // }, [isLoading, logOutSuccess]);
+
+
+
 
 
 
@@ -47,14 +54,14 @@ const Navbar = () => {
         }`}
     >
       <ul className='mb-4 max-w-7xl mx-auto flex gap-y-2 gap-x-8 h-full justify-center items-center'>
-        
+
         <li className='flex-auto font-semibold text-2xl'>
           <Link to='/'>JobBox</Link>
         </li>
 
         <li>
           {
-            email && <p>Welcome, {email}</p>
+            email && <p className="font-semibold text-blue-600">Welcome, {email}</p>
           }
         </li>
 
@@ -63,6 +70,42 @@ const Navbar = () => {
             Jobs
           </Link>
         </li>
+
+
+        {
+          email && role &&
+          <>
+            <li>
+              <Link
+                className='border border-black px-2 py-1 rounded-md hover:border-primary hover:text-white hover:bg-primary hover:px-4 transition-all cursor-pointer'
+                to='/dashboard'
+              >
+                Dashboard
+              </Link>
+            </li>
+          </>
+        }
+
+
+
+        {
+          email && !role &&
+          (
+            <li>
+              <Link
+                className='border border-black px-2 py-1 rounded-md hover:border-primary hover:text-white hover:bg-primary hover:px-4 transition-all cursor-pointer'
+                to='/register'
+              >
+                Get Started
+              </Link>
+            </li>
+          )
+        }
+
+
+
+
+
 
         <li>
           {
@@ -85,6 +128,9 @@ const Navbar = () => {
               </>
           }
         </li>
+
+
+
       </ul>
     </nav>
   );

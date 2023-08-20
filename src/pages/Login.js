@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import loginImage from "../assets/login.svg";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-hot-toast";
-import { googleLogin, toggleLoginSuccess, userLogin } from "../features/Auth/AuthSlice";
+import { googleLogin, userLogin } from "../features/Auth/AuthSlice";
 import { FaGoogle } from 'react-icons/fa'
 
 
@@ -18,7 +18,7 @@ const Login = () => {
   const dispatch = useDispatch()
   const authStates = useSelector(state => state.auth)
 
-  const { email, isLoading, isError, error, loginSuccess} = authStates
+  const { email, isLoading, isError, error} = authStates
 
 
 
@@ -26,27 +26,27 @@ const Login = () => {
   const { register, handleSubmit, reset } = useForm();
   const navigate = useNavigate();
 
+
+
+
   const onSubmit = (data) => {
     console.log(data);
     dispatch(userLogin(data))
   };
 
+  const handleLogInByGoogle = () => {
+    dispatch(googleLogin())
+    // dispatch(toggleLoginSuccess())
+  }
 
-  useEffect(() => {
-    if (!isLoading && loginSuccess) {
-      toast.success("Login Successful...", { id: "LoginUser" });
-      dispatch(toggleLoginSuccess())
-      reset();
-    }
-    if (!isLoading && isError) {
-      toast.error(error, { id: "LoginUser" })
-    }
-  }, [isLoading, loginSuccess, isError, error]);
 
 
   //login successful hole home page e navigate korbe
   useEffect(() => {
     if (!isLoading && email) {
+      toast.success("Login Successful...", { id: "LoginUser" });
+      // dispatch(toggleLoginSuccess())
+      reset();
       navigate('/')
     }
   }, [isLoading, email]);
@@ -54,10 +54,12 @@ const Login = () => {
 
 
 
-  const handleLogInByGoogle = () => {
-    dispatch(googleLogin())
-  }
-
+ //kono error hole error show korbe
+  useEffect(() => {
+    if (isError) {
+      toast.error(error)
+    }
+  }, [isError, error]);
 
 
 
@@ -67,9 +69,9 @@ const Login = () => {
       <div className='md:mt-24 mt-10 w-1/2'>
         <img src={loginImage} className='flex md:h-[600px] h-full w-full' alt='' />
       </div>
-      <div className='w-1/2 grid place-items-center'>
-        <div className='bg-[#FFFAF4] rounded-lg grid place-items-center p-10'>
-          <h1 className='mb-10 font-medium text-2xl'>Login</h1>
+      <div className='mt-16 w-1/2 grid place-items-center'>
+        <div className='bg-[#FFFAF4] grid place-items-center p-10 border-2 border-gray-400 rounded-md'>
+          <h1 className='mb-6 font-medium text-2xl'>Login</h1>
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className='space-y-3'>
               <div className='flex flex-col items-start'>
@@ -88,6 +90,12 @@ const Login = () => {
                   {...register("password")}
                 />
               </div>
+
+              {/* {
+                isError &&
+                <p className="text-red-600 text-start mt-3">{error}</p>
+              } */}
+
               <div className='relative !mt-8'>
                 <button
                   type='submit'
@@ -111,7 +119,7 @@ const Login = () => {
                 <p>
                   Don't have an account?{" "}
                   <span
-                    className='text-primary hover:underline cursor-pointer'
+                    className='text-primary hover:underline font-bold cursor-pointer'
                     onClick={() => navigate("/signup")}
                   >
                     Sign up
