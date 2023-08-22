@@ -1,28 +1,67 @@
-import React from "react";
+import React, {useEffect} from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { FiTrash } from "react-icons/fi";
+import { useAddJobMutation } from "../../features/Job/JobAPI";
+import toast from 'react-hot-toast'
+
+
+
+
+
+
 
 const AddJob = () => {
-  const { handleSubmit, register, control } = useForm();
+  
+  
+  
+
+  
+  const { handleSubmit, register, reset, control } = useForm();
+
   const {
     fields: resFields,
     append: resAppend,
     remove: resRemove,
   } = useFieldArray({ control, name: "responsibilities" });
+
   const {
     fields: skillFields,
     append: skillAppend,
     remove: skillRemove,
   } = useFieldArray({ control, name: "skills" });
+
   const {
     fields: reqFields,
     append: reqAppend,
     remove: reqRemove,
   } = useFieldArray({ control, name: "requirements" });
 
+  
+  
+  const [postJob, {isLoading, isError, isSuccess, error}] = useAddJobMutation()
+  
   const onSubmit = (data) => {
     console.log(data);
+    postJob(data)
   };
+
+
+  useEffect(() => {
+    if (!isLoading && isSuccess) {
+      toast.success("Job Added Successfully...");
+      reset();
+    }
+    if (!isLoading && isError) {
+      toast.error(error)
+    }
+  }, [isLoading, isSuccess, isError, error, reset]);
+
+
+
+
+
+
+
 
   return (
     <div className='flex justify-center items-center overflow-auto p-10'>
@@ -44,7 +83,7 @@ const AddJob = () => {
             Company Name
           </label>
           <input
-            disabled
+            
             className='cursor-not-allowed'
             type='text'
             id='companyName'
@@ -92,6 +131,8 @@ const AddJob = () => {
           </label>
           <textarea rows={8} {...register("overview")} id='overview' />
         </div>
+
+
         <div className='flex flex-col w-full'>
           <label className='mb-2'>Skills</label>
           <div>
@@ -129,6 +170,9 @@ const AddJob = () => {
             </div>
           </div>
         </div>
+
+
+
         <div className='flex flex-col w-full'>
           <label className='mb-2'>Responsibilities</label>
           <div>
@@ -166,6 +210,8 @@ const AddJob = () => {
             </div>
           </div>
         </div>
+
+
         <div className='flex flex-col w-full'>
           <label className='mb-2'>Requirements</label>
           <div>
@@ -203,6 +249,8 @@ const AddJob = () => {
             </div>
           </div>
         </div>
+
+
 
         <div className='flex justify-end items-center w-full mt-3'>
           <button className='btn' type='submit'>

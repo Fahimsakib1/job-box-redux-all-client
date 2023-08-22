@@ -18,9 +18,10 @@ const Navbar = () => {
   const navigate = useNavigate()
   const { pathname } = useLocation();
   const dispatch = useDispatch()
+  
   const authStates = useSelector(state => state.auth);
-  const { email, isLoading, logOutSuccess, role } = authStates
-
+  const { user, isLoading, logOutSuccess } = authStates
+  const { email, role } = authStates.user
 
   const handleLogOut = () => {
     // dispatch(userLogOut())
@@ -51,7 +52,7 @@ const Navbar = () => {
   return (
     <nav
       className={` shadow-2xl py-2 fixed w-full z-[999] ${pathname === "/" ? null : "bg-white"
-        }`}
+    }`}
     >
       <ul className='mb-4 max-w-7xl mx-auto flex gap-y-2 gap-x-8 h-full justify-center items-center'>
 

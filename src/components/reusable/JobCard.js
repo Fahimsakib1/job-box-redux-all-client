@@ -1,6 +1,10 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
+
+
+
+
 const JobCard = ({ jobData }) => {
   const navigate = useNavigate();
   const { _id, position, companyName, location, employmentType } =
@@ -9,7 +13,7 @@ const JobCard = ({ jobData }) => {
   return (
     <div
       key={_id}
-      className='border border-gray-300 shadow-xl p-5 rounded-2xl text-primary'
+      className=' mt-4 border border-gray-300 shadow-xl p-5 rounded-xl text-primary'
     >
       <div className='flex justify-between  text-primary'>
         <div>

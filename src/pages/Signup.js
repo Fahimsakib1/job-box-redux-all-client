@@ -56,8 +56,8 @@ const Signup = () => {
   const authStates = useSelector(state => state.auth)
   // console.log("State Before Sign Up: ", authStates);
 
-  const { isLoading, isError, error, email } = authStates
-
+  const { user, isLoading, isError, error } = authStates
+  const { email, role} = authStates.user
 
 
 

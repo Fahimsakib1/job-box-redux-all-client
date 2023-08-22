@@ -13,8 +13,10 @@ import auth from "../../firebase/firebase.config";
 
 
 const initialState = {
-    email: "",
-    role: "",
+    user: {
+        email: "",
+        role: ""
+    },
     isLoading: true,
     // loginSuccess: false,
     // logOutSuccess: false,
@@ -27,12 +29,13 @@ const initialState = {
 
 export const createUser = createAsyncThunk("auth/createUser", async (data) => {
     const userData = await createUserWithEmailAndPassword(auth, data.email, data.password);
-    return userData;
+    return userData.user.email;
 })
 
 export const userLogin = createAsyncThunk("auth/userLogin", async (data) => {
     const logInData = await signInWithEmailAndPassword(auth, data.email, data.password);
-    return logInData;
+    console.log('Login Data', logInData);
+    return logInData.user.email;
 })
 
 export const userLogOut = createAsyncThunk("auth/userLogOut", async () => {
@@ -43,9 +46,19 @@ export const userLogOut = createAsyncThunk("auth/userLogOut", async () => {
 export const googleLogin = createAsyncThunk("auth/googleLogin", async () => {
     const providerGoogle = new GoogleAuthProvider();
     const googleSignInData = await signInWithPopup(auth, providerGoogle);
-    return googleSignInData;
+    return googleSignInData.user.email;
 })
 
+//get the user by user email
+export const getUser = createAsyncThunk("auth/getUser", async (email) => {
+    const response = await fetch(`http://localhost:5000/user/${email}`)
+    const data = await response.json()
+    
+    if(data.status){
+        return data;
+    }
+    return email
+})
 
 
 
@@ -56,7 +69,7 @@ const AuthSlice = createSlice({
     reducers: {
 
         setUser: (state, action) => {
-            state.email = action.payload
+            state.user.email = action.payload
             state.isLoading = false;
         },
 
@@ -71,17 +84,19 @@ const AuthSlice = createSlice({
 
         // toggleLogOutSuccess: (state) => {
         //     state.logOutSuccess = false;
-        //     state.email = ''
+        //     state.user.email = ''
         // },
 
         toggleLogOut: (state) => {
-            state.email = ''
+            state.user.email= ''
         },
 
         toggleIsLoading: (state) => {
             state.isLoading = false
         }
     },
+
+
 
     extraReducers: (builder) => {
         builder
@@ -92,13 +107,13 @@ const AuthSlice = createSlice({
             })
             .addCase(createUser.fulfilled, (state, action) => {
                 state.isLoading = false;
-                state.email = action.payload.user.email;
+                state.user.email = action.payload;
                 state.isError = false;
                 state.error = ''
             })
             .addCase(createUser.rejected, (state, action) => {
                 state.isLoading = false;
-                state.email = ""
+                state.user.email = ""
                 state.isError = true;
                 state.error = action.error.message;
             })
@@ -112,18 +127,18 @@ const AuthSlice = createSlice({
             })
             .addCase(userLogin.fulfilled, (state, action) => {
                 state.isLoading = false;
-                state.email = action.payload.user.email;
+                state.user.email = action.payload;
                 state.isError = false;
                 state.error = ''
             })
             .addCase(userLogin.rejected, (state, action) => {
                 state.isLoading = false;
-                state.email = ""
+                state.user.email = ""
                 state.isError = true;
                 state.error = action.error.message;
             })
-            
-            
+
+
             .addCase(userLogOut.pending, (state) => {
                 state.isLoading = true;
                 state.isError = false;
@@ -131,13 +146,13 @@ const AuthSlice = createSlice({
             })
             .addCase(userLogOut.fulfilled, (state, action) => {
                 state.isLoading = false;
-                state.email = action.payload.user.email;
+                state.user.email = action.payload;
                 state.isError = false;
                 state.error = ''
             })
             .addCase(userLogOut.rejected, (state, action) => {
                 state.isLoading = false;
-                state.email = ""
+                state.user.email = ""
                 state.isError = true;
                 state.error = action.error.message;
             })
@@ -150,13 +165,38 @@ const AuthSlice = createSlice({
             })
             .addCase(googleLogin.fulfilled, (state, action) => {
                 state.isLoading = false;
-                state.email = action.payload.user.email;
+                state.user.email = action.payload;
                 state.isError = false;
                 state.error = ''
             })
             .addCase(googleLogin.rejected, (state, action) => {
                 state.isLoading = false;
-                state.email = ""
+                state.user.email = ""
+                state.isError = true;
+                state.error = action.error.message;
+            })
+
+
+            .addCase(getUser.pending, (state) => {
+                state.isLoading = true;
+                state.isError = false;
+                state.error = ''
+            })
+            .addCase(getUser.fulfilled, (state, action) => {
+                state.isLoading = false;
+                
+                if(action.payload.status){
+                    state.user = action.payload.data;
+                }
+                else{
+                    state.user.email = action.payload;
+                }
+                state.isError = false;
+                state.error = ''
+            })
+            .addCase(getUser.rejected, (state, action) => {
+                state.isLoading = false;
+                state.user.email = ""
                 state.isError = true;
                 state.error = action.error.message;
             })
@@ -167,3 +207,4 @@ const AuthSlice = createSlice({
 
 export const { toggleUserCreateSuccess, toggleLoginSuccess, toggleLogOutSuccess, setUser, toggleLogOut, toggleIsLoading } = AuthSlice.actions
 export default AuthSlice.reducer
+

@@ -46,11 +46,25 @@ const EmployerRegistration = () => {
 
 
 
+  
 
 
-  const {email} = useSelector(state => state.auth)
+
+  const {user:{email}} = useSelector(state => state.auth)
+
+  const state = useSelector(state => state)
+
+
+ 
+
+
+
+
+
+
+
+
   const [addEmployee, {isLoading, isError, isSuccess, error}] = useRegisterMutation()
-  console.log(isLoading, isSuccess, isError);
   
   const onSubmit = (data) => {
     console.log(data);

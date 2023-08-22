@@ -23,7 +23,7 @@ const routes = createBrowserRouter([
       },
       {
         path: "/jobs",
-        element: <Jobs />,
+        element: <PrivateRoute><Jobs /></PrivateRoute>
       },
       {
         path: "/job-details/:id",

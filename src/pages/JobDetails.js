@@ -1,26 +1,42 @@
-import React from "react";
-
+import React, { useEffect, useState } from "react";
 import meeting from "../assets/meeting.jpg";
 import { BsArrowRightShort, BsArrowReturnRight } from "react-icons/bs";
+import { useGetJobByIDQuery } from "../features/Job/JobAPI";
+import { useParams } from "react-router-dom";
+
+
+
+
+
+
 const JobDetails = () => {
-  const {
-    companyName,
-    position,
-    location,
-    experience,
-    workLevel,
-    employmentType,
-    salaryRange,
-    skills,
-    requirements,
-    responsibilities,
-    overview,
-    queries,
-    _id,
-  } = {};
+
+
+  const { id } = useParams()
+  const [details, setDetails] = useState({})
+  useEffect(() => {
+    fetch(`http://localhost:5000/job/${id}`)
+      .then(res => res.json())
+      .then(data => setDetails(data))
+  }, [])
+  const { position, companyName, employmentType, experience, location, overview, requirements, responsibilities, salaryRange, skills, workLevel } = details
+
+  const { jobDetails } = useGetJobByIDQuery(id) //kaj kore na 
+  console.log('JobDetails', jobDetails) 
+
+
+
+
+
+
 
   return (
-    <div className='pt-14 grid grid-cols-12 gap-5'>
+    <div className='absolute mt-10 md:px-10 px-4 pt-14 grid grid-cols-12 gap-5'>
+
+      
+
+
+
       <div className='col-span-9 mb-10'>
         <div className='h-80 rounded-xl overflow-hidden'>
           <img className='h-full w-full object-cover' src={meeting} alt='' />
@@ -37,7 +53,7 @@ const JobDetails = () => {
           <div>
             <h1 className='text-primary text-lg font-medium mb-3'>Skills</h1>
             <ul>
-              {skills.map((skill) => (
+              {skills?.map((skill) => (
                 <li className='flex items-center'>
                   <BsArrowRightShort /> <span>{skill}</span>
                 </li>
@@ -49,7 +65,7 @@ const JobDetails = () => {
               Requirements
             </h1>
             <ul>
-              {requirements.map((skill) => (
+              {requirements?.map((skill) => (
                 <li className='flex items-center'>
                   <BsArrowRightShort /> <span>{skill}</span>
                 </li>
@@ -61,7 +77,7 @@ const JobDetails = () => {
               Responsibilities
             </h1>
             <ul>
-              {responsibilities.map((skill) => (
+              {responsibilities?.map((skill) => (
                 <li className='flex items-center'>
                   <BsArrowRightShort /> <span>{skill}</span>
                 </li>
@@ -70,51 +86,10 @@ const JobDetails = () => {
           </div>
         </div>
         <hr className='my-5' />
-        <div>
-          <div>
-            <h1 className='text-xl font-semibold text-primary mb-5'>
-              General Q&A
-            </h1>
-            <div className='text-primary my-2'>
-              {queries.map(({ question, email, reply, id }) => (
-                <div>
-                  <small>{email}</small>
-                  <p className='text-lg font-medium'>{question}</p>
-                  {reply?.map((item) => (
-                    <p className='flex items-center gap-2 relative left-5'>
-                      <BsArrowReturnRight /> {item}
-                    </p>
-                  ))}
-
-                  <div className='flex gap-3 my-5'>
-                    <input placeholder='Reply' type='text' className='w-full' />
-                    <button
-                      className='shrink-0 h-14 w-14 bg-primary/10 border border-primary hover:bg-primary rounded-full transition-all  grid place-items-center text-primary hover:text-white'
-                      type='button'
-                    >
-                      <BsArrowRightShort size={30} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className='flex gap-3 my-5'>
-              <input
-                placeholder='Ask a question...'
-                type='text'
-                className='w-full'
-              />
-              <button
-                className='shrink-0 h-14 w-14 bg-primary/10 border border-primary hover:bg-primary rounded-full transition-all  grid place-items-center text-primary hover:text-white'
-                type='button'
-              >
-                <BsArrowRightShort size={30} />
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
+
+
+
       <div className='col-span-3'>
         <div className='rounded-xl bg-primary/10 p-5 text-primary space-y-5'>
           <div>
@@ -166,7 +141,22 @@ const JobDetails = () => {
           </div>
         </div>
       </div>
+
+
     </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
   );
 };
 

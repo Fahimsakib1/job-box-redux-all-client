@@ -18,7 +18,8 @@ const Login = () => {
   const dispatch = useDispatch()
   const authStates = useSelector(state => state.auth)
 
-  const { email, isLoading, isError, error} = authStates
+  const { user, isLoading, isError, error} = authStates
+  const { email, role} = authStates.user
 
 
 
@@ -99,7 +100,7 @@ const Login = () => {
               <div className='relative !mt-8'>
                 <button
                   type='submit'
-                  className='font-bold text-white py-3 rounded-full bg-primary w-full'
+                  className='font-bold text-white py-3 rounded-full bg-primary hover:bg-purple-700 w-full'
                 >
                   Login
                 </button>
