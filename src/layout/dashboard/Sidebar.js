@@ -1,10 +1,33 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { FaChevronLeft } from "react-icons/fa";
+import { useSelector } from "react-redux";
 
 
 
 const Sidebar = () => {
+
+
+  const user = useSelector(state => state.auth.user)
+
+  const employerRoutes = [
+    {
+      name: 'Add Job',
+      path: 'add-job'
+    }
+  ]
+
+
+
+  const candidateRoutes = [
+    {
+      name: 'Applied Jobs',
+      path: 'applied-jobs'
+    }
+  ]
+
+
+
   return (
     <div className='bg-primary/10 col-span-3 h-screen sticky top-0'>
       <ul className='flex flex-col gap-2 w-full h-full  p-3'>
@@ -15,14 +38,33 @@ const Sidebar = () => {
           </Link>
           <h1 className='text-xl'>Dashboard</h1>
         </div>
-        <li>
-          <Link
-            className='hover:bg-primary hover:text-white bg-primary/10 transition-all w-full block py-2 px-3 rounded-full'
-            to='add-job'
-          >
-            Add Job
-          </Link>
-        </li>
+        
+
+        {
+          user?.role === 'employer' && employerRoutes.map((item, index) =>
+            <li key={index}>
+              <Link
+                className='hover:bg-primary hover:text-white bg-primary/10 transition-all w-full block py-2 px-3 rounded-full'
+                to={item.path}
+              >
+                {item.name}
+              </Link>
+            </li>)
+        }
+
+
+        {
+          user?.role === 'candidate' && candidateRoutes.map((item, index) =>
+            <li key={index}>
+              <Link
+                className='hover:bg-primary hover:text-white bg-primary/10 transition-all w-full block py-2 px-3 rounded-full'
+                to={item.path}
+              >
+                {item.name}
+              </Link>
+            </li>)
+        }
+
       </ul>
     </div>
   );

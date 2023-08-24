@@ -25,10 +25,11 @@ const Navbar = () => {
 
   const handleLogOut = () => {
     // dispatch(userLogOut())
+
     signOut(auth)
       .then(() => {
         dispatch(toggleLogOut())
-        navigate('/login')
+        navigate('/')
       })
   }
 
@@ -57,10 +58,10 @@ const Navbar = () => {
       <ul className='mb-4 max-w-7xl mx-auto flex gap-y-2 gap-x-8 h-full justify-center items-center'>
 
         <li className='flex-auto font-semibold text-2xl'>
-          <Link to='/'>JobBox</Link>
+          <Link to='/'>JobBox <sup className="text-sm text-red-700 font-bold">{role}</sup></Link>
         </li>
 
-        <li>
+        <li className="">
           {
             email && <p className="font-semibold text-blue-600">Welcome, {email}</p>
           }

@@ -88,7 +88,7 @@ const AuthSlice = createSlice({
         // },
 
         toggleLogOut: (state) => {
-            state.user.email= ''
+            state.user = {email: "", role: ""}
         },
 
         toggleIsLoading: (state) => {
@@ -145,8 +145,13 @@ const AuthSlice = createSlice({
                 state.error = ''
             })
             .addCase(userLogOut.fulfilled, (state, action) => {
+                // state.isLoading = false;
+                // state.user.email = action.payload;
+                // state.isError = false;
+                // state.error = ''
+
                 state.isLoading = false;
-                state.user.email = action.payload;
+                state.user = {email:"", role: ""}
                 state.isError = false;
                 state.error = ''
             })

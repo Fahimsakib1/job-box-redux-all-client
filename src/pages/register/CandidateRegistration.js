@@ -2,12 +2,23 @@ import React, { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { FaChevronLeft } from "react-icons/fa";
+import { useRegisterMutation } from "../../features/Auth/AuthAPI";
+import { toast } from "react-hot-toast";
+import { useSelector } from "react-redux";
 
 
 
 const CandidateRegistration = () => {
+
+
+
+
+
+  const user = useSelector(state => state.auth.user)
+
+
   const [countries, setCountries] = useState([]);
-  const { handleSubmit, register, control } = useForm();
+  const { handleSubmit, register, reset, control } = useForm();
   const term = useWatch({ control, name: "term" });
   console.log(term);
   const navigate = useNavigate();
@@ -18,9 +29,35 @@ const CandidateRegistration = () => {
       .then((data) => setCountries(data));
   }, []);
 
+
+
+
+
+  const [addCandidate, { isLoading, isError, error, isSuccess }] = useRegisterMutation()
+
   const onSubmit = (data) => {
     console.log(data);
+    addCandidate({...data, role: 'candidate'})
   };
+
+
+  useEffect(() => {
+    if (!isLoading && isSuccess) {
+      toast.success("Candidate Added Successfully...");
+      reset();
+      navigate('/jobs')
+    }
+    if (!isLoading && isError) {
+      toast.error(error)
+    }
+  }, [isLoading, isSuccess, isError, error, reset]);
+
+
+
+
+
+
+
 
   return (
     <div className='pt-14'>
@@ -53,7 +90,7 @@ const CandidateRegistration = () => {
             <label className='mb-2' htmlFor='email'>
               Email
             </label>
-            <input type='email' id='email' {...register("email")} />
+            <input defaultValue={user?.email} readOnly className="text-gray-600" type='email' id='email' {...register("email")} />
           </div>
           <div className='flex flex-col w-full max-w-xs'>
             <h1 className='mb-3'>Gender</h1>
