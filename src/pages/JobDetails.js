@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import meeting from "../assets/meeting.jpg";
 import { BsArrowRightShort, BsArrowReturnRight } from "react-icons/bs";
-import { useApplyJobMutation, useAskQuestionMutation, useGetJobByIDQuery, useReplyMutation } from "../features/Job/JobAPI";
+import { useApplyJobMutation, useAskQuestionMutation, useGetJobByIDQuery, useJobStatusToggleMutation, useReplyMutation } from "../features/Job/JobAPI";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { useSelector } from "react-redux";
@@ -12,7 +12,24 @@ import { toast } from "react-hot-toast";
 
 
 
+
+
 const JobDetails = () => {
+
+  //this ISOSPostedDate is used to filter the data by dates from server
+  const ISOSPostedDateWhenJobApply = new Date().toISOString();
+  
+  //code for getting the  time and date
+  const dateForJobApply = new Date();
+  const year = dateForJobApply.getFullYear();
+  const month = dateForJobApply.getMonth() + 1;
+  const day = dateForJobApply.getDate();
+  const hour = dateForJobApply.getHours();
+  const minute = dateForJobApply.getMinutes();
+  const currentTime = dateForJobApply.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
+  const MonthDateYear = [month, day, year].join('-');
+  const jobAppliedTime = MonthDateYear + ' ' + currentTime
+
 
 
 
@@ -25,11 +42,19 @@ const JobDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate()
 
-  const { data } = useGetJobByIDQuery(id,{
-    pollingInterval: 1000
-  } ) 
-  console.log('Job Details', data) 
-  const { _id, position, companyName, employmentType, experience, location, overview, requirements, responsibilities, salaryRange, skills, workLevel, queries, applicantDetails } = data || {}
+
+
+
+  const { data } = useGetJobByIDQuery(id, { pollingInterval: 1000 })
+  console.log('Job Details', data)
+
+
+  const { _id, position, companyName, employmentType, experience, location, overview, requirements, responsibilities, salaryRange, skills, workLevel, queries, applicantDetails, jobStatus } = data || {}
+
+
+  console.log("Applicant Details", applicantDetails);
+  console.log('Type of Applicant Details', typeof applicantDetails)
+  console.log('Type of Responsibilities', typeof responsibilities)
 
 
 
@@ -63,7 +88,15 @@ const JobDetails = () => {
       userId: user._id, //sign up er por user er jei id thake oi id 
       jobId: _id, // post post korar po jb er id thakbe oi id ta user kora holo
       email: user.email, //sign up er por user er email
-      applyStatus: true
+      address: user?.address,
+      city: user?.city,
+      country: user?.country,
+      firstName: user?.firstName,
+      lastName: user?.lastName,
+      gender: user?.gender,
+      jobAppliedTime: jobAppliedTime,
+      ISOSPostedDateWhenJobApply: ISOSPostedDateWhenJobApply,
+      applyStatus: true,
     }
     console.log("User Data", data);
     apply(data)
@@ -99,7 +132,6 @@ const JobDetails = () => {
   // console.log("Applied Button Toggle", getEmailForAppliedButtonToggle?.email); 
 
 
-  console.log("Applicant Details", applicantDetails);
   const getEmailForAppliedButtonToggle = Array.isArray(applicantDetails) ? applicantDetails.find(applicant => applicant.email === user?.email) : ''
   console.log("Applied Button Toggle", getEmailForAppliedButtonToggle?.email);
 
@@ -133,7 +165,20 @@ const JobDetails = () => {
     }
     console.log("Reply Data: ", data);
     sendReply(data)
-  
+  }
+
+
+
+  const [toggleStatus] = useJobStatusToggleMutation()
+
+
+  const handleToggleJobStatus = () => {
+    const data = {
+      jobId: _id,
+      jobStatus: jobStatus
+    }
+    toggleStatus(data)
+    toast.success('Job Status Changed')
   }
 
 
@@ -147,13 +192,34 @@ const JobDetails = () => {
 
 
       <div className='col-span-9 mb-10'>
+
         <div className='h-80 rounded-xl overflow-hidden'>
           <img className='h-full w-full object-cover' src={meeting} alt='' />
         </div>
 
         <div className='space-y-5'>
-          <div className='flex justify-between items-center mt-5'>
-            <h1 className='text-xl font-semibold text-primary'>{position}</h1>
+
+          <div className="relative top-4 flex justify-between items-center">
+            <h1 className="text-lg text-black font-bold">Job Status:
+              <span className={`${jobStatus === true ? 'text-green-600 ml-1' : 'text-red-600 ml-1'}`}>
+                {jobStatus === true ? "Open" : "Closed"}
+              </span>
+            </h1>
+            {
+              user?.role === 'employer' &&
+              <>
+                <button onClick={handleToggleJobStatus} type="button" className='btn'>Change Status</button>
+              </>
+            }
+            {
+              user?.role === 'candidate' && !data?.applyStatus && jobStatus === false &&
+              <h1 className="font-semibold text-red-600 text-center text-md">Job Closed. You Can't Apply</h1>
+            }
+          </div>
+
+
+          <div className='relative flex justify-between items-center top-4'>
+            <h1 className='text-xl font-semibold text-primary mb-4'>{position} </h1>
 
             {
               user?.role === 'candidate' &&
@@ -172,15 +238,19 @@ const JobDetails = () => {
                     </>
                     :
                     <>
-                      <button className='btn' onClick={handleJobApply}>Apply</button>
+                      {
+                        jobStatus === true &&
+                        <button className='btn' onClick={handleJobApply}>Apply</button>
+                      }
                     </>
                 }
               </>
+
             }
 
           </div>
           <div>
-            <h1 className='text-primary text-lg font-medium mb-3 '>Overview</h1>
+            <h1 className='text-primary text-lg font-medium mb-3'>Overview</h1>
             <p className="text-justify">{overview}</p>
           </div>
           <div>
@@ -240,9 +310,9 @@ const JobDetails = () => {
                   <>
                     <div className='flex gap-3 my-5'>
                       <input
-                        
+
                         onBlur={(e) => setReply(e.target.value)}
-                        
+
                         placeholder='Reply' type='text' className='w-full' />
                       <button
                         onClick={() => handleReplySubmit(id)}
@@ -301,6 +371,14 @@ const JobDetails = () => {
 
 
       <div className='col-span-3'>
+
+        <h1 className='text-center text-lg font-bold text-blue-700 mb-3 '>
+          Total Applied: {data?.applicantDetails?.length}
+          <span className={`${jobStatus === true ? 'font-bold text-[16px] text-green-600 ml-1' : 'text-[16px] text-red-600 ml-1 font-bold'}`}>
+            {jobStatus === true ? "(Open)" : "(Closed)"}
+          </span>
+        </h1>
+
         <div className='rounded-xl bg-primary/10 p-5 text-primary space-y-5'>
           <div>
             <p>Experience</p>
@@ -323,6 +401,7 @@ const JobDetails = () => {
             <h1 className='font-semibold text-lg'>{location}</h1>
           </div>
         </div>
+
         <div className='mt-5 rounded-xl bg-primary/10 p-5 text-primary space-y-5'>
           <div>
             <h1 className='font-semibold text-lg'>{companyName}</h1>
@@ -350,10 +429,89 @@ const JobDetails = () => {
             </a>
           </div>
         </div>
+
+        {
+          user?.role === 'employer' &&
+          <div className="text-center mx-auto ">
+            <button onClick={() => window.my_modal_3.showModal()} type="button" className='mt-8 btn'>View Candidates</button>
+          </div>
+        }
       </div>
 
 
+
+
+      <>
+
+        <dialog id="my_modal_3" className="modal  ">
+          <form method="dialog" className="bg-gray-800 modal-box w-11/12 max-w-5xl">
+            <button className=" border-2 border-red-600 bg-red-600 hover:bg-red-600 font-extrabold scale-115 hover:p-0 hover:scale-120  btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
+              <span className="text-white ">✕</span>
+            </button>
+
+            {
+              applicantDetails && applicantDetails.length > 0
+                ?
+                <div>
+                  <h1 className="text-white font-bold text-xl mt-2 text-center ">{applicantDetails.length} Candidates Applied For This Job So Far</h1>
+
+                  <div className="grid lg:grid-cols-2 md:grid-cols-2 grid-cols-1 gap-x-5 gap-y-3">
+                    {
+                      applicantDetails?.map((applicant, index) =>
+                        <div key={index}>
+                          <div className="bg-white shadow-xl border-2 rounded-md mt-4 p-3">
+                            <h1 className="font-semibold text-gray-600">Name: {applicant.firstName} {applicant.lastName}</h1>
+                            <h1 className="font-semibold text-gray-600">Email: {applicant.email}</h1>
+                            <div className="divider my-2 font-bold">Address</div>
+                            <p className="font-semibold text-gray-600">Address: {applicant.address}, {applicant.city}</p>
+                            <p className="font-semibold text-gray-600">Country: {applicant.country}</p>
+                            <p className="font-semibold text-gray-600">Job Applied: {applicant.jobAppliedTime}</p>
+                            <div className="text-center  mx-auto my-4">
+                              <button className='btn1'>Message</button>
+                            </div>
+                          </div>
+
+                        </div>
+                      )
+                    }
+
+                  </div>
+
+                </div>
+                :
+                <h1>
+                  <h1 className="font-bold text-white text-xl mt-2 text-center ">No One Applied For This Job Yet...</h1>
+                </h1>
+            }
+          </form>
+        </dialog>
+      </>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     </div>
+
+
+
+
+
 
 
 

@@ -12,6 +12,7 @@ import AddJob from "../pages/employeeDashboard/AddJob";
 import EmployerDashboard from "../pages/employeeDashboard/EmployerDashboard";
 import CandidateDashboard from "../pages/candidateDashboard/CandidateDashboard";
 import AppliedJobs from "../pages/candidateDashboard/AppliedJobs";
+import DashboardHomePage from "../layout/dashboard/DashboardHomePage";
 
 
 
@@ -68,6 +69,12 @@ const routes = createBrowserRouter([
       </PrivateRoute>
     ),
     children: [
+      
+      {
+        path: '/dashboard',
+        element: <DashboardHomePage></DashboardHomePage>
+      },
+      
       {
         path: "add-job",
         element: <AddJob />,

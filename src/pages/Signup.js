@@ -93,7 +93,8 @@ const Signup = () => {
    //kono error hole error show korbe
     useEffect(() => {
       if (isError) {
-        toast.error(error)
+        // toast.error(error)
+        console.log(error);
       }
     }, [isError, error]);
   

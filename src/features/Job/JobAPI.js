@@ -72,8 +72,36 @@ const JobAPI = apiSlice.injectEndpoints({
             invalidatesTags: ['job']
         }),
 
+        jobStatusToggle: build.mutation({
+            query: (data) => ({
+                url: '/toggleJobStatus',
+                method: 'PATCH',
+                body: data,
+                headers: {
+                    'Content-type': 'application/json',
+                },
+            }),
+            invalidatesTags: ['job']
+        }),
+
+        //API endpoints for filtering the applied jobs based on applied dates
+        userAppliedFilterJobs: build.query({
+            query: (email) => ({
+                url: `/filter/appliedJobs/${email}`
+            }),
+        }),
+
+        //API endpoints for filtering the applied jobs based on applied dates reverse
+        userAppliedNoFilterJobs: build.query({
+            query: (email) => ({
+                url: `/noFilter/appliedJobs/${email}`
+            }),
+        }),
+
+
+
     })
 })
 
 
-export const { useAddJobMutation, useGetAllJobsQuery, useGetJobByIDQuery, useApplyJobMutation, useUserAppliedJobsQuery, useAskQuestionMutation, useReplyMutation } = JobAPI
+export const { useAddJobMutation, useGetAllJobsQuery, useGetJobByIDQuery, useApplyJobMutation, useAskQuestionMutation, useReplyMutation, useJobStatusToggleMutation, useUserAppliedFilterJobsQuery, useUserAppliedNoFilterJobsQuery, useUserAppliedJobsQuery } = JobAPI

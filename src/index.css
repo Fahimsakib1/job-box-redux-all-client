@@ -40,3 +40,12 @@
 .btn {
   @apply px-4 py-2 border border-primary text-primary rounded-full hover:bg-primary hover:text-white transition-all hover:px-6 disabled:text-gray-300 disabled:border-gray-300 disabled:hover:px-4 disabled:hover:bg-transparent disabled:cursor-not-allowed;
 }
+
+
+.btn1 {
+  @apply px-6 py-2 border border-primary text-white rounded-md bg-primary hover:bg-primary hover:text-white transition-all hover:px-8;
+}
+
+.btn2 {
+  @apply px-3 py-2 border border-blue-800 text-white rounded-md bg-blue-800 hover:bg-blue-800 hover:text-white transition-all hover:px-5;
+}

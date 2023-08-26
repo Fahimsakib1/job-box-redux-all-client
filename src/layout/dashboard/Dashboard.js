@@ -7,7 +7,7 @@ const Dashboard = () => {
   return (
     <div className='grid grid-cols-12'>
       <Sidebar />
-      <div className=' col-span-9'>
+      <div className=' col-span-10'>
         <div className=' h-full max-w-7xl mx-auto'>
           <Outlet />
         </div>

@@ -15,6 +15,24 @@ import { useNavigate } from "react-router-dom";
 const AddJob = () => {
 
 
+  //this ISOSPostedDate is used to filter the data by dates from server
+  const ISOSPostedDate = new Date().toISOString();
+  // console.log("ISOS Date: ", ISOSPostedDate);
+
+
+  //code for getting the  time and date
+  const dateForAddJob = new Date();
+  const year = dateForAddJob.getFullYear();
+  const month = dateForAddJob.getMonth() + 1;
+  const day = dateForAddJob.getDate();
+  const hour = dateForAddJob.getHours();
+  const minute = dateForAddJob.getMinutes();
+  const currentTime = dateForAddJob.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
+  const MonthDateYear = [month, day, year].join('-');
+  const jobPostedTime = MonthDateYear + ' ' + currentTime
+
+
+
   const user = useSelector(state => state.auth.user)
 
   const navigate = useNavigate()
@@ -46,7 +64,7 @@ const AddJob = () => {
 
   const onSubmit = (data) => {
     console.log(data);
-    postJob({ ...data, applicantDetails: [], queries: [] })
+    postJob({ ...data, jobStatus: true, ISOSPostedDate:ISOSPostedDate, jobPostedTime: jobPostedTime, applicantDetails: [], queries: [] })
   };
 
 

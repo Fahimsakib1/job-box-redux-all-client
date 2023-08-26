@@ -7,10 +7,10 @@ import Loading from "../components/reusable/Loading";
 
 
 
-const Jobs = () => {
+const Jobs = (name) => {
 
 
-  const { data, isLoading, isSuccess, isError, error } = useGetAllJobsQuery() //kaj kore na 
+  const { data, isLoading, isSuccess, isError, error } = useGetAllJobsQuery(name, {pollingInterval: 500})  
   console.log('All Jobs: ', data)
 
 
@@ -51,7 +51,7 @@ const Jobs = () => {
               </div>
             </>
             :
-            <h1 className="text-center my-20 font-bold text-xl">No Job Added yet</h1>
+            <h1 className="text-center my-20 font-bold text-2xl">No Job Added yet</h1>
         }
 
       </div>

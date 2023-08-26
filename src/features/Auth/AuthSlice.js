@@ -113,7 +113,7 @@ const AuthSlice = createSlice({
             })
             .addCase(createUser.rejected, (state, action) => {
                 state.isLoading = false;
-                state.user.email = ""
+                state.user.email = "";
                 state.isError = true;
                 state.error = action.error.message;
             })
