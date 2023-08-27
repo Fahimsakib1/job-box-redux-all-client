@@ -10,8 +10,8 @@ import Loading from "../components/reusable/Loading";
 const Jobs = (name) => {
 
 
-  const { data, isLoading, isSuccess, isError, error } = useGetAllJobsQuery(name, {pollingInterval: 500})  
-  console.log('All Jobs: ', data)
+  const { data, isLoading, isSuccess, isError, error } = useGetAllJobsQuery(name, {pollingInterval: 1000})  
+  // console.log('All Jobs: ', data)
 
 
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import meeting from "../assets/meeting.jpg";
 import { BsArrowRightShort, BsArrowReturnRight } from "react-icons/bs";
+import { BiSend } from "react-icons/bi";
 import { useApplyJobMutation, useAskQuestionMutation, useGetJobByIDQuery, useJobStatusToggleMutation, useReplyMutation } from "../features/Job/JobAPI";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -53,6 +54,7 @@ const JobDetails = () => {
   const { _id, position, companyName, employmentType, experience, location, overview, requirements, responsibilities, salaryRange, skills, workLevel, queries, applicantDetails, jobStatus } = data || {}
 
 
+
   // console.log("Applicant Details", applicantDetails);
   // console.log('Type of Applicant Details', typeof applicantDetails)
   // console.log('Type of Responsibilities', typeof responsibilities)
@@ -64,8 +66,8 @@ const JobDetails = () => {
   //   fetch(`http://localhost:5000/job/${id}`)
   //     .then(res => res.json())
   //     .then(data => setDetails(data))
-  // }, [])
-  // const { _id, position, companyName, employmentType, experience, location, overview, requirements, responsibilities, salaryRange, skills, workLevel, queries } = details
+  // }, [id])
+  // const { _id, position, companyName, employmentType, experience, location, overview, requirements, responsibilities, salaryRange, skills, workLevel, queries, applicantDetails, jobStatus } = details || {}
 
 
 
@@ -97,6 +99,7 @@ const JobDetails = () => {
       gender: user?.gender,
       jobAppliedTime: jobAppliedTime,
       ISOSPostedDateWhenJobApply: ISOSPostedDateWhenJobApply,
+      appliedJob: position,
       applyStatus: true,
     }
     // console.log("User Data", data);
@@ -148,7 +151,7 @@ const JobDetails = () => {
     const questionData = {
       userId: user._id, //sign up er por user er jei id thake oi id 
       jobId: _id, // post post korar po jb er id thakbe oi id ta user kora holo
-      email: user.email, //sign up er por user er email
+      email: user?.email, //sign up er por user er email
       question: data.question
     }
     // console.log(questionData);
@@ -177,7 +180,7 @@ const JobDetails = () => {
 
 
 
-  
+
 
 
 
@@ -197,6 +200,64 @@ const JobDetails = () => {
     toggleStatus(data)
     toast.success('Job Status Changed')
   }
+
+
+
+  const [openMessageModal, setOpenMessageModal] = useState(null);
+  const handleCloseMessageModal = () => {
+    setOpenMessageModal(null);
+  }
+
+
+
+
+
+
+  const [openModal, setOpenModal] = useState(false);
+  const handleOpenModal = () => {
+    setOpenModal(true)
+  }
+  const handleCancelModal = () => {
+    setOpenModal(false);
+  }
+
+
+
+
+
+  
+
+
+
+
+
+
+
+  
+
+
+
+
+  const [message, setMessage] = useState('')
+  const sendMessageToCandidate = (firstName, lastName, candidateEmail, appliedJob, candidateID) => {
+    const details = {
+      candidateFullName: firstName + ' ' + lastName,
+      candidateEmail: candidateEmail,
+      appliedJob: appliedJob,
+      employerFullName: user?.firstName + ' ' + user?.lastName,
+      employerEmail: user?.email,
+      candidateID: candidateID,
+      employerID: user?._id,
+      message: message,
+      messageSentTime: jobAppliedTime
+    }
+    console.log("Message Data:", details);
+    setMessage('')
+  }
+
+
+
+
 
 
 
@@ -327,7 +388,7 @@ const JobDetails = () => {
                   user?.role === 'employer' &&
                   <>
                     <div className='flex gap-3 my-5'>
-                      
+
                       <input
                         onBlur={(e) => setReply(e.target.value)}
                         placeholder='Reply' type='text' className='w-full' />
@@ -453,8 +514,14 @@ const JobDetails = () => {
           <div className="text-center mx-auto ">
             <button onClick={() => window.my_modal_3.showModal()} type="button" className='mt-8 btn'>View Candidates</button>
           </div>
+          
         }
+
       </div>
+
+
+
+
 
 
 
@@ -480,14 +547,36 @@ const JobDetails = () => {
                           <div className="bg-white shadow-xl border-2 rounded-md mt-4 p-3">
                             <h1 className="font-semibold text-gray-600">Name: {applicant.firstName} {applicant.lastName}</h1>
                             <h1 className="font-semibold text-gray-600">Email: {applicant.email}</h1>
+                            <h1 className="font-semibold text-gray-600">Applied For: {applicant.appliedJob}</h1>
+
                             <div className="divider my-2 font-bold">Address</div>
+
                             <p className="font-semibold text-gray-600">Address: {applicant.address}, {applicant.city}</p>
                             <p className="font-semibold text-gray-600">Country: {applicant.country}</p>
                             <p className="font-semibold text-gray-600">Job Applied: {applicant.jobAppliedTime}</p>
+
+
+                          
+
+
+
+                          
+
+
                             <div className="text-center  mx-auto my-4">
-                              <button className='btn1'>Message</button>
+                              <label htmlFor="newModal1" onClick={() => setOpenMessageModal(applicant)} className='btn1'>
+                                Message
+                              </label>
                             </div>
+
+
+                            {/* <div className="text-center  mx-auto my-4">
+                              <button onClick={() => setOpenMessageModal(applicant)} className='btn1'>Message</button>
+                            </div> */}
+
                           </div>
+
+
 
                         </div>
                       )
@@ -504,6 +593,96 @@ const JobDetails = () => {
           </form>
         </dialog>
       </>
+
+
+
+
+      <>
+
+        {
+          openMessageModal &&
+          <>
+            <input type="checkbox" id="newModal1" className="modal-toggle" />
+            <div className="modal mx-6 md:mx-0">
+              <div className="modal-box  w-11/12 max-w-5xl  bg-gray-800 rounded-md mx-auto">
+
+                <label onClick={handleCloseMessageModal} htmlFor="newModal1" className=" text-white  border-2 border-red-600 bg-red-600 hover:bg-red-600  scale-115 hover:p-0 hover:scale-120  btn btn-sm btn-circle btn-ghost absolute right-2 top-2"><span className="font-extrabold text-white">✕</span></label>
+
+
+                <h1 className="text-center mb-2 text-yellow-500 font-semibold">Employer: {user?.firstName} {user?.lastName}</h1>
+
+                <div>
+                  <h1 className="text-white text-md">Applicant Name: {openMessageModal.firstName} {openMessageModal.lastName}</h1>
+                  <h1 className="text-white text-md">Applicant Email: {openMessageModal.email}</h1>
+                  <h1 className="text-white text-md">Applied For: {openMessageModal.appliedJob}</h1>
+                  <h1 className="text-white text-md">ID: {openMessageModal.id}</h1>
+                </div>
+
+                <>
+                  <div className='flex flex-col w-full'>
+                    <div className=' mb-5 flex items-center gap-3'>
+                      <input value={message} onChange={(e) => setMessage(e.target.value)} className=' rounded-md h-[54px] border-primary lg:w-full md:w-full w-full mt-4' type='text'
+                      />
+                      <button
+                        onClick={() => sendMessageToCandidate(openMessageModal.firstName, openMessageModal.lastName, openMessageModal.email, openMessageModal.appliedJob, openMessageModal.id)}
+                        type='button'
+                        className='mt-4 -ml-[140px] grid place-items-center rounded-full px-4 flex-shrink-0 bg-primary border h-11 w-28 group transition-all text-white text-lg hover:w-[122px]'
+                      >
+                        <div className="flex justify-center items-center gap-x-2">
+                          <p>Send</p>
+                          <BiSend size={20}></BiSend>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                </>
+
+              </div>
+            </div>
+          </>
+        }
+      </>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
