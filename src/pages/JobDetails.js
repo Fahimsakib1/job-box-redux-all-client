@@ -18,8 +18,8 @@ const JobDetails = () => {
 
   //this ISOSPostedDate is used to filter the data by dates from server
   const ISOSPostedDateWhenJobApply = new Date().toISOString();
-  console.log("Date: ", ISOSPostedDateWhenJobApply);
-  
+  // console.log("Date: ", ISOSPostedDateWhenJobApply);
+
   //code for getting the  time and date
   const dateForJobApply = new Date();
   const year = dateForJobApply.getFullYear();
@@ -35,7 +35,7 @@ const JobDetails = () => {
 
 
   const user = useSelector(state => state.auth.user)
-  console.log("User State", user);
+  // console.log("User State", user);
 
 
   const { handleSubmit, register, reset, control } = useForm();
@@ -47,15 +47,15 @@ const JobDetails = () => {
 
 
   const { data } = useGetJobByIDQuery(id, { pollingInterval: 1000 })
-  console.log('Job Details', data)
+  // console.log('Job Details', data)
 
 
   const { _id, position, companyName, employmentType, experience, location, overview, requirements, responsibilities, salaryRange, skills, workLevel, queries, applicantDetails, jobStatus } = data || {}
 
 
-  console.log("Applicant Details", applicantDetails);
-  console.log('Type of Applicant Details', typeof applicantDetails)
-  console.log('Type of Responsibilities', typeof responsibilities)
+  // console.log("Applicant Details", applicantDetails);
+  // console.log('Type of Applicant Details', typeof applicantDetails)
+  // console.log('Type of Responsibilities', typeof responsibilities)
 
 
 
@@ -99,7 +99,7 @@ const JobDetails = () => {
       ISOSPostedDateWhenJobApply: ISOSPostedDateWhenJobApply,
       applyStatus: true,
     }
-    console.log("User Data", data);
+    // console.log("User Data", data);
     apply(data)
 
   }
@@ -117,7 +117,7 @@ const JobDetails = () => {
         .then(data => {
           if (data) {
             setDetails(data)
-            console.log("Job Data Inside", data);
+            // console.log("Job Data Inside", data);
           }
         })
       toast.success("Job Applied Successfully...");
@@ -134,21 +134,24 @@ const JobDetails = () => {
 
 
   const getEmailForAppliedButtonToggle = Array.isArray(applicantDetails) ? applicantDetails.find(applicant => applicant.email === user?.email) : ''
-  console.log("Applied Button Toggle", getEmailForAppliedButtonToggle?.email);
+  // console.log("Applied Button Toggle", getEmailForAppliedButtonToggle?.email);
 
 
 
+  //function for add questions to a job only by the candidate
   const [sendQuestion] = useAskQuestionMutation()
-
   const submitQuestion = (data) => {
 
+    if (data.question === '') {
+      return toast('Please write a question')
+    }
     const questionData = {
       userId: user._id, //sign up er por user er jei id thake oi id 
       jobId: _id, // post post korar po jb er id thakbe oi id ta user kora holo
       email: user.email, //sign up er por user er email
       question: data.question
     }
-    console.log(questionData);
+    // console.log(questionData);
     sendQuestion(questionData)
     toast.success('Question Added')
     reset()
@@ -157,12 +160,16 @@ const JobDetails = () => {
 
 
 
+  // function for replying the questions only by the employer
   const [reply, setReply] = useState("");
   const [sendReply] = useReplyMutation()
-  const handleReplySubmit = (id) => {
+  const handleReplySubmit = (id, question) => {
     const data = {
       reply: reply,
-      userId: id
+      userId: id,
+      jobId: _id,
+      employerEmail: user?.email,
+      question: question
     }
     console.log("Reply Data: ", data);
     sendReply(data)
@@ -170,9 +177,18 @@ const JobDetails = () => {
 
 
 
+  
+
+
+
+
+
+
+
+
+
+  //function for chage the job status from open to close and vise versa
   const [toggleStatus] = useJobStatusToggleMutation()
-
-
   const handleToggleJobStatus = () => {
     const data = {
       jobId: _id,
@@ -296,6 +312,7 @@ const JobDetails = () => {
 
           <div className='text-primary my-2'>
             {queries && queries?.map(({ question, id, reply, email }, index) => (
+              // query er moddhe id ta hocche user er id
               <div>
                 <p className='text-lg font-medium text-red-600'><span>{index + 1}.</span> {question}</p>
                 <p className="text-[12px] font-semibold -mt-1">Asked By: {email}</p>
@@ -310,13 +327,13 @@ const JobDetails = () => {
                   user?.role === 'employer' &&
                   <>
                     <div className='flex gap-3 my-5'>
+                      
                       <input
-
                         onBlur={(e) => setReply(e.target.value)}
-
                         placeholder='Reply' type='text' className='w-full' />
+
                       <button
-                        onClick={() => handleReplySubmit(id)}
+                        onClick={() => handleReplySubmit(id, question)}
                         className='shrink-0 h-14 w-14 bg-primary/10 border border-primary hover:bg-primary rounded-full transition-all  grid place-items-center text-primary hover:text-white'
                         type='button'
                       >

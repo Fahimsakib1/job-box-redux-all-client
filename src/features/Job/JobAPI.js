@@ -75,6 +75,7 @@ const JobAPI = apiSlice.injectEndpoints({
             }),
             invalidatesTags: ['job']
         }),
+        
 
         jobStatusToggle: build.mutation({
             query: (data) => ({
