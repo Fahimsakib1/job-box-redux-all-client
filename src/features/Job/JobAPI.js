@@ -48,6 +48,10 @@ const JobAPI = apiSlice.injectEndpoints({
             }),
         }),
 
+
+
+
+
         askQuestion: build.mutation({
             query: (data) => ({
                 url: '/query',
@@ -84,18 +88,12 @@ const JobAPI = apiSlice.injectEndpoints({
             invalidatesTags: ['job']
         }),
 
-        //API endpoints for filtering the applied jobs based on applied dates
-        userAppliedFilterJobs: build.query({
-            query: (email) => ({
-                url: `/filter/appliedJobs/${email}`
-            }),
-        }),
 
-        //API endpoints for filtering the applied jobs based on applied dates reverse
-        userAppliedNoFilterJobs: build.query({
-            query: (email) => ({
-                url: `/noFilter/appliedJobs/${email}`
+        tryFilter: build.query({
+            query: (data) => ({
+                url: `/filter/${data?.filterValue}/${data?.email}`
             }),
+            
         }),
 
 
@@ -104,4 +102,4 @@ const JobAPI = apiSlice.injectEndpoints({
 })
 
 
-export const { useAddJobMutation, useGetAllJobsQuery, useGetJobByIDQuery, useApplyJobMutation, useAskQuestionMutation, useReplyMutation, useJobStatusToggleMutation, useUserAppliedFilterJobsQuery, useUserAppliedNoFilterJobsQuery, useUserAppliedJobsQuery } = JobAPI
+export const { useAddJobMutation, useGetAllJobsQuery, useGetJobByIDQuery, useApplyJobMutation, useAskQuestionMutation, useReplyMutation, useJobStatusToggleMutation, useUserAppliedJobsQuery, useTryFilterQuery } = JobAPI

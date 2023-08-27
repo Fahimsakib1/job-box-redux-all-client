@@ -18,6 +18,7 @@ const JobDetails = () => {
 
   //this ISOSPostedDate is used to filter the data by dates from server
   const ISOSPostedDateWhenJobApply = new Date().toISOString();
+  console.log("Date: ", ISOSPostedDateWhenJobApply);
   
   //code for getting the  time and date
   const dateForJobApply = new Date();

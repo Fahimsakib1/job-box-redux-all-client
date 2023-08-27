@@ -48,7 +48,7 @@ const JobCard = ({ jobData }) => {
   return (
     <div
       key={_id}
-      className=' mt-4 border border-gray-300 shadow-xl p-5 rounded-xl text-primary'
+      className=' bg-gray-100 mt-4 border border-gray-300 shadow-xl p-5 rounded-xl text-primary'
     >
       <h1 className="text-center mt-2 mb-2 font-semibold text-blue-700">Total Applied : {applicantDetails?.length}</h1>
       <div className='flex justify-between  text-primary'>

@@ -31,14 +31,14 @@ const Jobs = (name) => {
 
 
   return (
-    <div className='pt-14'>
+    <div className='pt-14 px-4 '>
       <div className='bg-primary/10 p-5 rounded-2xl'>
         <h1 className='font-semibold text-xl'>All Jobs</h1>
 
         {
           data && data.length > 0 ?
             <>
-              <div className='grid grid-cols-2 gap-5 mt-5'>
+              <div className='grid grid-cols-2 gap-5 mt-5 mb-10 '>
                 {
                   data &&
                   <>
