@@ -97,10 +97,30 @@ const JobAPI = apiSlice.injectEndpoints({
             
         }),
 
+        // add message by an employer to a candidate
+        sentMessageByEmployer: build.mutation({
+            query: (data) => ({
+                url: '/messageByEmployer',
+                method: 'PATCH',
+                body: data,
+                headers: {
+                    'Content-type': 'application/json',
+                },
+            })
+        }),
+        
+        //get and display the messages for the employer for a particular candidate
+        getMessageForEmployer: build.query({
+            query: (data) => ({
+                url: `/employer/messages/${data?.appliedJob}/${data?.email}`
+            }),
+            
+        }),
+
 
 
     })
 })
 
 
-export const { useAddJobMutation, useGetAllJobsQuery, useGetJobByIDQuery, useApplyJobMutation, useAskQuestionMutation, useReplyMutation, useJobStatusToggleMutation, useUserAppliedJobsQuery, useTryFilterQuery } = JobAPI
+export const { useAddJobMutation, useGetAllJobsQuery, useGetJobByIDQuery, useApplyJobMutation, useAskQuestionMutation, useReplyMutation, useJobStatusToggleMutation, useUserAppliedJobsQuery, useTryFilterQuery, useSentMessageByEmployerMutation, useGetMessageForEmployerQuery } = JobAPI

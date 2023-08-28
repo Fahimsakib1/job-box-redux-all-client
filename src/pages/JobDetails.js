@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import meeting from "../assets/meeting.jpg";
 import { BsArrowRightShort, BsArrowReturnRight } from "react-icons/bs";
 import { BiSend } from "react-icons/bi";
-import { useApplyJobMutation, useAskQuestionMutation, useGetJobByIDQuery, useJobStatusToggleMutation, useReplyMutation } from "../features/Job/JobAPI";
+import { useApplyJobMutation, useAskQuestionMutation, useGetJobByIDQuery, useGetMessageForEmployerQuery, useJobStatusToggleMutation, useReplyMutation, useSentMessageByEmployerMutation } from "../features/Job/JobAPI";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { useSelector } from "react-redux";
@@ -52,6 +52,7 @@ const JobDetails = () => {
 
 
   const { _id, position, companyName, employmentType, experience, location, overview, requirements, responsibilities, salaryRange, skills, workLevel, queries, applicantDetails, jobStatus } = data || {}
+  console.log("Job Name:", position);
 
 
 
@@ -174,7 +175,7 @@ const JobDetails = () => {
       employerEmail: user?.email,
       question: question
     }
-    console.log("Reply Data: ", data);
+    // console.log("Reply Data: ", data);
     sendReply(data)
   }
 
@@ -211,21 +212,52 @@ const JobDetails = () => {
 
 
 
-
-
-  const [openModal, setOpenModal] = useState(false);
-  const handleOpenModal = () => {
-    setOpenModal(true)
+  const [openFirstModal, setOpenFirstModal] = useState(false);
+  const handleOpenFirstModal = () => {
+    setOpenFirstModal(true)
   }
-  const handleCancelModal = () => {
-    setOpenModal(false);
+  const closeFirstModal = () => {
+    setOpenFirstModal(false)
   }
 
 
+  const [getCandidateEmail, setGetCandidateEmail] = useState('')
+  const [openConversationModal, setOpenConversationModal] = useState(null);
+  const handleOpenConversationModal = (allData) => {
+    setOpenConversationModal(allData)
+    ///////////////////////////////
+    setGetCandidateEmail(allData)
+    console.log("All data: ", allData);
+    // console.log("Add data Email: ", allData.email);
+    // console.log("State Email Inside: ", getCandidateEmail);
+  }
+  // console.log("State Email Outside: ", getCandidateEmail);
+  const closeConversationModal = () => {
+    setOpenConversationModal(null)
+  }
 
 
 
-  
+  //Codes for displaying conversation with the employer on a modal from the candidate's perspective
+  const [conversationModalForCandidate, setConversationModalForCandidate] = useState(false);
+  const handleConversationModalForCandidate = () => {
+    setConversationModalForCandidate(true)
+    const candidateData = {
+      email: user?.email,
+      appliedJob: position
+    }
+    setGetCandidateEmail(candidateData)
+
+  }
+  const closeConversationModalForCandidate = () => {
+    setConversationModalForCandidate(false)
+  }
+
+
+
+  const { data: messageData } = useGetMessageForEmployerQuery(getCandidateEmail, { pollingInterval: 1000 })
+  // console.log("Message Data 1: ", data);
+  console.log("Message Data 2: ", messageData);
 
 
 
@@ -233,13 +265,22 @@ const JobDetails = () => {
 
 
 
-  
 
 
 
 
+
+
+
+
+
+  const [sendMessage] = useSentMessageByEmployerMutation()
   const [message, setMessage] = useState('')
   const sendMessageToCandidate = (firstName, lastName, candidateEmail, appliedJob, candidateID) => {
+
+    if (message === '') {
+      return toast('You can not send empty text.. Please write a message')
+    }
     const details = {
       candidateFullName: firstName + ' ' + lastName,
       candidateEmail: candidateEmail,
@@ -247,13 +288,31 @@ const JobDetails = () => {
       employerFullName: user?.firstName + ' ' + user?.lastName,
       employerEmail: user?.email,
       candidateID: candidateID,
-      employerID: user?._id,
+      userId: user?._id,
       message: message,
+      jobId: _id,
       messageSentTime: jobAppliedTime
     }
-    console.log("Message Data:", details);
+    // console.log("Message Data:", details);
+    sendMessage(details)
     setMessage('')
+    toast.success('Message Sent...')
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -376,7 +435,7 @@ const JobDetails = () => {
               // query er moddhe id ta hocche user er id
               <div>
                 <p className='text-lg font-medium text-red-600'><span>{index + 1}.</span> {question}</p>
-                <p className="text-[12px] font-semibold -mt-1">Asked By: {email}</p>
+                <p className="text-gray-600 text-[11px] font-semibold -mt-1">Asked By: {email}</p>
                 {/* <p className="text-[12px] font-semibold">{id}</p> */}
                 {reply.map((item) => (
                   <p className='font-semibold text-sm flex items-center gap-2 relative left-5'>
@@ -481,7 +540,7 @@ const JobDetails = () => {
           </div>
         </div>
 
-        <div className='mt-5 rounded-xl bg-primary/10 p-5 text-primary space-y-5'>
+        <div className={`${user?.role === 'candidate' && 'mb-16'} mt-5 rounded-xl bg-primary/10 p-5 text-primary space-y-5`}>
           <div>
             <h1 className='font-semibold text-lg'>{companyName}</h1>
           </div>
@@ -511,13 +570,126 @@ const JobDetails = () => {
 
         {
           user?.role === 'employer' &&
-          <div className="text-center mx-auto ">
-            <button onClick={() => window.my_modal_3.showModal()} type="button" className='mt-8 btn'>View Candidates</button>
+
+          // <div className="mb-12 text-center mx-auto ">
+          //   <button onClick={() => window.my_modal_3.showModal()} type="button" className='mt-8 btn'>View Candidates</button>
+          // </div>
+
+          <div className="mb-12 text-center mx-auto ">
+            <label htmlFor="firstModal" onClick={handleOpenFirstModal} className=' mt-8 btn' title='View Candidates'>
+              View Candidates
+            </label>
           </div>
-          
+        }
+
+
+
+
+
+
+
+
+        {
+          user?.role === 'candidate' &&
+          <div className=" text-center mx-auto ">
+            <label htmlFor="conversationModalForCandidate" onClick={handleConversationModalForCandidate} className='cursor-pointer conversationBtn' title='See Conversation'>
+              See Conversation With Employer
+            </label>
+          </div>
         }
 
       </div>
+
+
+
+
+
+
+
+      <>
+        {
+          openFirstModal &&
+          <>
+            <>
+              <input type="checkbox" id="firstModal" className="modal-toggle" />
+              <div className="modal mx-6 md:mx-0">
+                <div className="modal-box  w-11/12 max-w-5xl  bg-gray-800 rounded-md mx-auto">
+
+                  <label onClick={closeFirstModal} htmlFor="firstModal" className=" text-white  border-2 border-red-600 bg-red-600 hover:bg-red-600  scale-115 hover:p-0 hover:scale-120  btn btn-sm btn-circle btn-ghost absolute right-2 top-2"><span className="font-extrabold text-white">✕</span></label>
+
+
+                  {
+                    applicantDetails && applicantDetails.length > 0
+                      ?
+                      <div>
+                        <h1 className="text-white font-bold text-xl mt-2 text-center ">{applicantDetails.length} Candidates Applied For This Job So Far</h1>
+
+                        <div className="grid lg:grid-cols-2 md:grid-cols-2 grid-cols-1 gap-x-5 gap-y-3">
+                          {
+                            applicantDetails?.map((applicant, index) =>
+                              <div key={index}>
+                                <div className="bg-white shadow-xl border-2 rounded-md mt-4 p-3">
+                                  <h1 className="font-semibold text-gray-600">Name: {applicant.firstName} {applicant.lastName}</h1>
+                                  <h1 className="font-semibold text-gray-600">Email: {applicant.email}</h1>
+                                  <h1 className="font-semibold text-gray-600">Applied For: {applicant.appliedJob}</h1>
+                                  <h1 className="font-semibold text-gray-600">Applicant ID: {applicant.id}</h1>
+                                  <h1 className="font-semibold text-gray-600">Job ID: {_id}</h1>
+
+                                  <div className="divider my-2 font-bold">Address</div>
+
+                                  <p className="font-semibold text-gray-600">Address: {applicant.address}, {applicant.city}</p>
+                                  <p className="font-semibold text-gray-600">Country: {applicant.country}</p>
+                                  <p className="font-semibold text-gray-600">Job Applied: {applicant.jobAppliedTime}</p>
+
+
+                                  <div className="flex justify-between items-center md:flex-row flex-col md:gap-x-4 md:gap-y-0 gap-x-0 gap-y-3">
+
+                                    <div className="text-center  mx-auto my-4">
+                                      <label htmlFor="newModal1" onClick={() => setOpenMessageModal(applicant)} className='btn1'>
+                                        Message
+                                      </label>
+                                    </div>
+
+                                    <div className="text-center  mx-auto my-4">
+                                      <label htmlFor="conversationModal" onClick={() => handleOpenConversationModal(applicant)} className=' conversationBtn' title='View Messages'>
+                                        See Conversation
+                                      </label>
+                                    </div>
+
+                                  </div>
+
+
+                                  {/* <div className="text-center  mx-auto my-4">
+                              <button onClick={() => setOpenMessageModal(applicant)} className='btn1'>Message</button>
+                            </div> */}
+
+                                </div>
+
+
+
+                              </div>
+                            )
+                          }
+
+                        </div>
+
+                      </div>
+                      :
+                      <h1>
+                        <h1 className="font-bold text-white text-xl mt-2 text-center ">No One Applied For This Job Yet...</h1>
+                      </h1>
+                  }
+
+
+
+
+                </div>
+              </div>
+            </>
+
+          </>
+        }
+      </>
 
 
 
@@ -548,19 +720,14 @@ const JobDetails = () => {
                             <h1 className="font-semibold text-gray-600">Name: {applicant.firstName} {applicant.lastName}</h1>
                             <h1 className="font-semibold text-gray-600">Email: {applicant.email}</h1>
                             <h1 className="font-semibold text-gray-600">Applied For: {applicant.appliedJob}</h1>
+                            <h1 className="font-semibold text-gray-600">Applicant ID: {applicant.id}</h1>
+                            <h1 className="font-semibold text-gray-600">Job ID: {_id}</h1>
 
                             <div className="divider my-2 font-bold">Address</div>
 
                             <p className="font-semibold text-gray-600">Address: {applicant.address}, {applicant.city}</p>
                             <p className="font-semibold text-gray-600">Country: {applicant.country}</p>
                             <p className="font-semibold text-gray-600">Job Applied: {applicant.jobAppliedTime}</p>
-
-
-                          
-
-
-
-                          
 
 
                             <div className="text-center  mx-auto my-4">
@@ -604,7 +771,7 @@ const JobDetails = () => {
           <>
             <input type="checkbox" id="newModal1" className="modal-toggle" />
             <div className="modal mx-6 md:mx-0">
-              <div className="modal-box  w-11/12 max-w-5xl  bg-gray-800 rounded-md mx-auto">
+              <div className="modal-box   bg-gray-800 rounded-md mx-auto">
 
                 <label onClick={handleCloseMessageModal} htmlFor="newModal1" className=" text-white  border-2 border-red-600 bg-red-600 hover:bg-red-600  scale-115 hover:p-0 hover:scale-120  btn btn-sm btn-circle btn-ghost absolute right-2 top-2"><span className="font-extrabold text-white">✕</span></label>
 
@@ -615,14 +782,17 @@ const JobDetails = () => {
                   <h1 className="text-white text-md">Applicant Name: {openMessageModal.firstName} {openMessageModal.lastName}</h1>
                   <h1 className="text-white text-md">Applicant Email: {openMessageModal.email}</h1>
                   <h1 className="text-white text-md">Applied For: {openMessageModal.appliedJob}</h1>
-                  <h1 className="text-white text-md">ID: {openMessageModal.id}</h1>
+                  <h1 className="text-white text-md">Applicant ID: {openMessageModal.id}</h1>
+                  <h1 className="text-white text-md">User ID: {user?._id}</h1>
+                  <h1 className="text-white text-md">Job ID: {_id}</h1>
                 </div>
 
                 <>
                   <div className='flex flex-col w-full'>
                     <div className=' mb-5 flex items-center gap-3'>
-                      <input value={message} onChange={(e) => setMessage(e.target.value)} className=' rounded-md h-[54px] border-primary lg:w-full md:w-full w-full mt-4' type='text'
-                      />
+                      {/* <input value={message} onChange={(e) => setMessage(e.target.value)} className=' rounded-md h-[54px] border-primary lg:w-full md:w-full w-full mt-4' type='text'
+                      /> */}
+                      <textarea value={message} onChange={(e) => setMessage(e.target.value)} className=' rounded-md  text-black border-primary lg:w-full md:w-full w-full mt-4' type='text' rows={3} />
                       <button
                         onClick={() => sendMessageToCandidate(openMessageModal.firstName, openMessageModal.lastName, openMessageModal.email, openMessageModal.appliedJob, openMessageModal.id)}
                         type='button'
@@ -635,6 +805,233 @@ const JobDetails = () => {
                       </button>
                     </div>
                   </div>
+
+
+                  {
+                    user?.role === 'employer' || user?.role === 'candidate' ?
+                      <div className=" mt-6 mb-6 text-center mx-auto ">
+                        <label htmlFor="conversationModal" onClick={() => handleOpenConversationModal(openMessageModal)} className=' conversationBtn' title='View Messages'>
+                          {user?.role === 'employer' ? 'See Conversation' : 'See Conversation With Employer'}
+                        </label>
+                      </div>
+                      :
+                      <>
+
+                      </>
+                  }
+
+
+
+                </>
+
+              </div>
+            </div>
+          </>
+        }
+      </>
+
+
+
+
+
+      <>
+        {
+          openConversationModal &&
+          <>
+            <input type="checkbox" id="conversationModal" className="modal-toggle" />
+            <div className="modal mx-6 md:mx-0 ">
+              <div className="modal-box w-11/12 max-w-5xl relative bg-gray-800 rounded-md mx-auto">
+
+                <label onClick={closeConversationModal} htmlFor="conversationModal" className=" text-white  border-2 border-red-600 bg-red-600 hover:bg-red-600  scale-115 hover:p-0 hover:scale-120  btn btn-sm btn-circle btn-ghost absolute right-2 top-2"><span className="font-extrabold text-white">✕</span></label>
+
+                <div>
+
+
+
+
+                  {
+                    messageData?.length > 0 ?
+                      <>
+                        <h1 className="mb-6 font-semibold text-center text-green-600">See Conversation with {openConversationModal.firstName} {openConversationModal.lastName} ({openConversationModal.email})</h1>
+                        {
+                          messageData?.map((data, index) =>
+                            <div key={index}>
+
+                              <div>
+                                <p className='text-yellow-500 font-semibold text-[11px] flex justify-end items-center gap-1 relative'>
+                                  <BsArrowReturnRight /> Applied For: {data?.appliedJob}
+                                </p>
+
+                                {/* <div className="mt-1 flex justify-end">
+                                  <div className="md:w-1/2 w-3/4  bg-gray-300 px-3 py-1 rounded-md mb-4 border border-primary">
+                                    <h1 className=" text-[12px] text-black font-bold ">{data.message}</h1>
+                                    <p className="text-blue-700 font-bold text-[10px] ">Sent: {data.messageSentTime}</p>
+                                  </div>
+                                </div> */}
+
+
+                                <div className="flex justify-end">
+                                  <div className="chat chat-end mb-3">
+                                    <div className="chat-bubble">
+                                      <h1 className=" text-[12px] text-white font-bold ">{data.message}</h1>
+                                      <p className="text-gray-500 font-bold text-[10px] ">Sent: {data.messageSentTime}</p>
+                                    </div>
+                                  </div>
+                                </div>
+
+
+
+
+                              </div>
+
+                            </div>
+                          )
+                        }
+                      </>
+
+                      :
+
+                      <div>
+                        <h1 className="text-center text-lg text-gray-300 my-10">You have not start conversation with {openConversationModal.firstName} {openConversationModal.lastName}</h1>
+                      </div>
+                  }
+
+
+
+
+
+
+
+
+                  <div className='mt-20 flex flex-col w-full'>
+                    <div className=' mb-2 flex items-center gap-3'>
+                      {/* <input value={message} onChange={(e) => setMessage(e.target.value)} className=' rounded-md h-[54px] border-primary lg:w-full md:w-full w-full mt-4' type='text'
+                      /> */}
+                      <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Type Message..." className='text-black rounded-md  border-primary lg:w-full md:w-full w-full mt-4' type='text' rows={2} />
+                      <button
+                        onClick={() => sendMessageToCandidate(openConversationModal.firstName, openConversationModal.lastName, openConversationModal.email, openConversationModal.appliedJob, openConversationModal.id)}
+                        type='button'
+                        className='mt-4 -ml-[140px] grid place-items-center rounded-full px-4 flex-shrink-0 bg-primary border h-11 w-28 group transition-all text-white text-lg hover:w-[122px]'
+                      >
+                        <div className="flex justify-center items-center gap-x-2">
+                          <p>Send</p>
+                          <BiSend size={20}></BiSend>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
+
+
+
+                </div>
+
+              </div>
+            </div>
+          </>
+        }
+      </>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      <>
+
+        {
+          conversationModalForCandidate &&
+          <>
+            <input type="checkbox" id="conversationModalForCandidate" className="modal-toggle" />
+            <div className="modal mx-6 md:mx-0">
+              <div className="modal-box w-11/12 max-w-5xl  bg-gray-800 rounded-md mx-auto">
+
+                <label onClick={closeConversationModalForCandidate} htmlFor="conversationModalForCandidate" className=" text-white  border-2 border-red-600 bg-red-600 hover:bg-red-600  scale-115 hover:p-0 hover:scale-120  btn btn-sm btn-circle btn-ghost absolute right-2 top-2"><span className="font-extrabold text-white">✕</span></label>
+
+
+                {/* <h1 className="text-center mb-2 text-yellow-500 font-semibold">Employer: {user?.firstName} {user?.lastName}</h1> */}
+
+
+
+
+
+
+                {
+                  messageData?.length > 0 ?
+                    <>
+                      <h1 className="mb-6 font-semibold text-center text-green-600">See Conversation with the Employer</h1>
+                      {
+                        messageData?.map((data, index) =>
+                          <div key={index}>
+
+                            <div>
+
+                              <p className='text-yellow-500 font-semibold text-[11px] flex justify-start items-center gap-1 relative'>
+                                <BsArrowReturnRight /> Message For: {data?.appliedJob} Position
+                              </p>
+
+                              {/* <div className="mt-1 flex justify-start">
+                                <div className="md:w-1/2 w-3/4  bg-blue-700 px-3 py-1 rounded-md mb-4 ">
+                                  <h1 className=" text-[12px] text-white font-bold ">{data.message}</h1>
+                                  <p className="text-gray-500 font-bold text-[10px] ">Sent: {data.messageSentTime}</p>
+                                </div>
+                              </div> */}
+
+                              <div className="flex justify-start">
+                                <div className="chat chat-start mb-3">
+                                  <div className="chat-bubble">
+                                    <h1 className=" text-[12px] text-white font-bold ">{data.message}</h1>
+                                    <p className="text-gray-500 font-bold text-[10px] ">Sent: {data.messageSentTime}</p>
+                                  </div>
+                                </div>
+                              </div>
+
+                            </div>
+
+                          </div>
+                        )
+                      }
+                    </>
+
+                    :
+
+                    <div>
+                      <h1 className="text-center text-lg text-gray-300 my-10">No message available. Once an employer texts you only then you can have a conversation with the employer..</h1>
+                    </div>
+                }
+
+
+
+
+
+
+
+                <>
+                  <div className='mt-8 flex flex-col w-full'>
+                    <div className=' mb-5 flex items-center gap-3'>
+                      <textarea className=' rounded-md  text-black border-primary lg:w-full md:w-full w-full mt-4' type='text' rows={3} />
+                      <button
+                        type='button'
+                        className='mt-4 -ml-[140px] grid place-items-center rounded-full px-4 flex-shrink-0 bg-primary border h-11 w-28 group transition-all text-white text-lg hover:w-[122px]'
+                      >
+                        <div className="flex justify-center items-center gap-x-2">
+                          <p>Reply</p>
+                          <BiSend size={20}></BiSend>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
                 </>
 
               </div>
@@ -656,7 +1053,7 @@ const JobDetails = () => {
 
 
 
-     
+
 
 
 
