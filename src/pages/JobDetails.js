@@ -368,30 +368,26 @@ const JobDetails = () => {
 
 
 
+  // used to concat messageData and replyMessageData array into a single array so that I can show the messages by the employer and the replies by the candidate in a manner that the messages and replies will align one after another in real time along with vice versa direction
 
   const mergedArray = [];
-
   let i = 0;
   let j = 0;
-
   while (i < messageData?.length && j < replyMessageData?.length) {
     mergedArray.push(messageData[i]);
     mergedArray.push(replyMessageData[j]);
     i++;
     j++;
   }
-
   // If the arrays are not of the same length, add the remaining elements
   while (i < messageData?.length) {
     mergedArray.push(messageData[i]);
     i++;
   }
-
   while (j < replyMessageData?.length) {
     mergedArray.push(replyMessageData[j]);
     j++;
   }
-
   console.log("Merged Array Data: ", mergedArray);
 
 
@@ -985,14 +981,13 @@ const JobDetails = () => {
                                         <p className='text-yellow-500 font-semibold text-[11px] flex justify-end items-center gap-1 relative'>
                                           <BsArrowReturnRight /> Applied For: {data?.appliedJob}
                                         </p>
-                                        <div className="flex justify-end">
-                                          <div className="chat chat-end mb-3">
-                                            <div className="chat-bubble bg-gray-700">
-                                              <h1 className=" text-[12px] text-white font-semibold ">{data.message}</h1>
-                                              <p className="text-blue-500  font-semibold text-[10px] ">Sent: {data.messageSentTime}</p>
-                                            </div>
+                                        <div className="chat chat-end">
+                                          <div className="chat-bubble bg-gray-700 px-4">
+                                            <h1 className=" text-[12px] text-white font-semibold ">{data.message}</h1>
+                                            <p className="text-blue-500  font-semibold text-[10px] ">Sent: {data.messageSentTime}</p>
                                           </div>
                                         </div>
+                                        {/* <p className="text-end text-blue-500  font-semibold text-[10px] ">Sent: {data.messageSentTime}</p> */}
                                       </div>
                                     </>
                                   }
@@ -1000,14 +995,13 @@ const JobDetails = () => {
                                   {
                                     data?.reply &&
                                     <>
-                                      <div className="flex justify-start">
-                                        <div className="chat chat-start mb-3">
-                                          <div className="chat-bubble bg-blue-800 ">
-                                            <h1 className=" text-[12px] text-white font-semibold ">{data.reply}</h1>
-                                            <p className="text-yellow-600 font-bold text-[10px]">Sent: {data.replyTime}</p>
-                                          </div>
+                                      <div className="chat chat-start ">
+                                        <div className="chat-bubble bg-blue-800 px-4 ">
+                                          <h1 className=" text-[12px] text-white font-semibold ">{data.reply}</h1>
+                                          <p className="text-yellow-600 font-bold text-[10px]">Sent: {data.replyTime}</p>
                                         </div>
                                       </div>
+                                      {/* <p className="text-yellow-600 font-bold text-[10px]">Sent: {data.replyTime}</p> */}
                                     </>
                                   }
 
@@ -1114,12 +1108,10 @@ const JobDetails = () => {
                                       <p className='text-yellow-500 font-semibold text-[11px] flex justify-start items-center gap-1 relative'>
                                         <BsArrowReturnRight /> Applied For: {data?.appliedJob}
                                       </p>
-                                      <div className="flex justify-start">
-                                        <div className="chat chat-start mb-3">
-                                          <div className="chat-bubble bg-gray-700">
-                                            <h1 className=" text-[12px] text-white font-semibold ">{data.message}</h1>
-                                            <p className="text-blue-500  font-semibold text-[10px] ">Sent: {data.messageSentTime}</p>
-                                          </div>
+                                      <div className="chat chat-start">
+                                        <div className="chat-bubble bg-gray-700 px-4">
+                                          <h1 className=" text-[12px] text-white font-semibold ">{data.message}</h1>
+                                          <p className="text-blue-500  font-semibold text-[10px] ">Sent: {data.messageSentTime}</p>
                                         </div>
                                       </div>
                                     </div>
@@ -1129,12 +1121,10 @@ const JobDetails = () => {
                                 {
                                   data?.reply &&
                                   <>
-                                    <div className="flex justify-end">
-                                      <div className="chat chat-end mb-3">
-                                        <div className="chat-bubble bg-blue-800 ">
-                                          <h1 className=" text-[12px] text-white font-semibold ">{data.reply}</h1>
-                                          <p className="text-yellow-600 font-bold text-[10px]">Sent: {data.replyTime}</p>
-                                        </div>
+                                    <div className="chat chat-end">
+                                      <div className="chat-bubble bg-blue-800 px-4">
+                                        <h1 className=" text-[12px] text-white font-semibold ">{data.reply}</h1>
+                                        <p className="text-yellow-600 font-bold text-[10px]">Sent: {data.replyTime}</p>
                                       </div>
                                     </div>
                                   </>
