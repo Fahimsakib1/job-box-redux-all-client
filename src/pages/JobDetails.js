@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import meeting from "../assets/meeting.jpg";
-import { BsArrowRightShort, BsArrowReturnRight } from "react-icons/bs";
+import { BsArrowRightShort, BsArrowReturnRight, BsClock } from "react-icons/bs";
 import { BiSend } from "react-icons/bi";
-import { useApplyJobMutation, useAskQuestionMutation, useGetJobByIDQuery, useGetMessageForEmployerQuery, useJobStatusToggleMutation, useReplyMutation, useSentMessageByEmployerMutation } from "../features/Job/JobAPI";
+import { useApplyJobMutation, useAskQuestionMutation, useGetJobByIDQuery, useGetMessageForEmployerQuery, useGetReplyMessageForCandidateQuery, useJobStatusToggleMutation, useReplyMutation, useSentMessageByEmployerMutation, useSentReplyByCandidateMutation } from "../features/Job/JobAPI";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { useSelector } from "react-redux";
@@ -16,6 +16,16 @@ import { toast } from "react-hot-toast";
 
 
 const JobDetails = () => {
+
+  const [randomNumber, setRandomNumber] = useState('')
+  const getNumber = Math.floor(Math.random() * (100000000000 - 999999999999 + 1)) + 999999999999;
+  const getRandomNumber = () => {
+    setRandomNumber(getNumber.toString())
+  }
+
+
+
+
 
   //this ISOSPostedDate is used to filter the data by dates from server
   const ISOSPostedDateWhenJobApply = new Date().toISOString();
@@ -51,14 +61,9 @@ const JobDetails = () => {
   // console.log('Job Details', data)
 
 
-  const { _id, position, companyName, employmentType, experience, location, overview, requirements, responsibilities, salaryRange, skills, workLevel, queries, applicantDetails, jobStatus } = data || {}
-  console.log("Job Name:", position);
+  const { _id, position, companyName, employmentType, experience, location, overview, requirements, responsibilities, salaryRange, skills, workLevel, queries, applicantDetails, jobStatus, employerTexts } = data || {}
 
 
-
-  // console.log("Applicant Details", applicantDetails);
-  // console.log('Type of Applicant Details', typeof applicantDetails)
-  // console.log('Type of Responsibilities', typeof responsibilities)
 
 
 
@@ -225,11 +230,16 @@ const JobDetails = () => {
   const [openConversationModal, setOpenConversationModal] = useState(null);
   const handleOpenConversationModal = (allData) => {
     setOpenConversationModal(allData)
-    ///////////////////////////////
     setGetCandidateEmail(allData)
-    console.log("All data: ", allData);
-    // console.log("Add data Email: ", allData.email);
-    // console.log("State Email Inside: ", getCandidateEmail);
+    const newDetails = {
+      candidateEmail: allData?.email,
+      appliedJob: allData?.appliedJob,
+      jobId: _id,
+      replyTime: jobAppliedTime,
+      candidateID: allData?.id,
+    }
+    setReplyData(newDetails)
+
   }
   // console.log("State Email Outside: ", getCandidateEmail);
   const closeConversationModal = () => {
@@ -240,13 +250,29 @@ const JobDetails = () => {
 
   //Codes for displaying conversation with the employer on a modal from the candidate's perspective
   const [conversationModalForCandidate, setConversationModalForCandidate] = useState(false);
+  //this state is used to set the required dta to get the reply data by the  candidate
+  const [replyData, setReplyData] = useState('')
+
+  const [replyMessageByCandidate, setReplyMessageByCandidate] = useState('')
+
+
   const handleConversationModalForCandidate = () => {
     setConversationModalForCandidate(true)
     const candidateData = {
       email: user?.email,
       appliedJob: position
     }
-    setGetCandidateEmail(candidateData)
+    setGetCandidateEmail(candidateData);
+
+    const newDetails = {
+      candidateEmail: user?.email,
+      appliedJob: position,
+      jobId: _id,
+      replyTime: jobAppliedTime,
+      candidateID: user?._id,
+      reply: replyMessageByCandidate
+    }
+    setReplyData(newDetails)
 
   }
   const closeConversationModalForCandidate = () => {
@@ -257,7 +283,7 @@ const JobDetails = () => {
 
   const { data: messageData } = useGetMessageForEmployerQuery(getCandidateEmail, { pollingInterval: 1000 })
   // console.log("Message Data 1: ", data);
-  console.log("Message Data 2: ", messageData);
+  // console.log("Message Data: ", messageData);
 
 
 
@@ -281,6 +307,7 @@ const JobDetails = () => {
     if (message === '') {
       return toast('You can not send empty text.. Please write a message')
     }
+    // setRandomNumber(getNumber.toString())
     const details = {
       candidateFullName: firstName + ' ' + lastName,
       candidateEmail: candidateEmail,
@@ -291,13 +318,89 @@ const JobDetails = () => {
       userId: user?._id,
       message: message,
       jobId: _id,
-      messageSentTime: jobAppliedTime
+      messageSentTime: jobAppliedTime,
+      randomNumber: getNumber.toString()
     }
     // console.log("Message Data:", details);
     sendMessage(details)
     setMessage('')
     toast.success('Message Sent...')
   }
+
+
+
+
+
+
+
+
+
+  // Reply messages to a particular job position by the candidate
+
+  const [replyByCandidate] = useSentReplyByCandidateMutation()
+  const handleReplyMessageByCandidate = () => {
+    if (replyMessageByCandidate === '') {
+      return toast('You can not reply with an empty text..')
+    }
+
+    const details = {
+      candidateEmail: user?.email,
+      appliedJob: position,
+      jobId: _id,
+      replyTime: jobAppliedTime,
+      candidateID: user?._id,
+      reply: replyMessageByCandidate
+    }
+    console.log("Reply Details: ", details);
+    replyByCandidate(details)
+    toast.success('Reply Sent')
+    setReplyMessageByCandidate('')
+  }
+
+
+  const { data: replyMessageData } = useGetReplyMessageForCandidateQuery(replyData, { pollingInterval: 1000 })
+
+
+
+
+  // console.log("Message Data:", messageData);
+  // console.log("Reply Data: ", replyMessageData);
+
+
+
+
+  const mergedArray = [];
+
+  let i = 0;
+  let j = 0;
+
+  while (i < messageData?.length && j < replyMessageData?.length) {
+    mergedArray.push(messageData[i]);
+    mergedArray.push(replyMessageData[j]);
+    i++;
+    j++;
+  }
+
+  // If the arrays are not of the same length, add the remaining elements
+  while (i < messageData?.length) {
+    mergedArray.push(messageData[i]);
+    i++;
+  }
+
+  while (j < replyMessageData?.length) {
+    mergedArray.push(replyMessageData[j]);
+    j++;
+  }
+
+  console.log("Merged Array Data: ", mergedArray);
+
+
+
+
+
+
+
+
 
 
 
@@ -571,10 +674,6 @@ const JobDetails = () => {
         {
           user?.role === 'employer' &&
 
-          // <div className="mb-12 text-center mx-auto ">
-          //   <button onClick={() => window.my_modal_3.showModal()} type="button" className='mt-8 btn'>View Candidates</button>
-          // </div>
-
           <div className="mb-12 text-center mx-auto ">
             <label htmlFor="firstModal" onClick={handleOpenFirstModal} className=' mt-8 btn' title='View Candidates'>
               View Candidates
@@ -658,11 +757,6 @@ const JobDetails = () => {
 
                                   </div>
 
-
-                                  {/* <div className="text-center  mx-auto my-4">
-                              <button onClick={() => setOpenMessageModal(applicant)} className='btn1'>Message</button>
-                            </div> */}
-
                                 </div>
 
 
@@ -736,11 +830,6 @@ const JobDetails = () => {
                               </label>
                             </div>
 
-
-                            {/* <div className="text-center  mx-auto my-4">
-                              <button onClick={() => setOpenMessageModal(applicant)} className='btn1'>Message</button>
-                            </div> */}
-
                           </div>
 
 
@@ -790,8 +879,6 @@ const JobDetails = () => {
                 <>
                   <div className='flex flex-col w-full'>
                     <div className=' mb-5 flex items-center gap-3'>
-                      {/* <input value={message} onChange={(e) => setMessage(e.target.value)} className=' rounded-md h-[54px] border-primary lg:w-full md:w-full w-full mt-4' type='text'
-                      /> */}
                       <textarea value={message} onChange={(e) => setMessage(e.target.value)} className=' rounded-md  text-black border-primary lg:w-full md:w-full w-full mt-4' type='text' rows={3} />
                       <button
                         onClick={() => sendMessageToCandidate(openMessageModal.firstName, openMessageModal.lastName, openMessageModal.email, openMessageModal.appliedJob, openMessageModal.id)}
@@ -805,22 +892,6 @@ const JobDetails = () => {
                       </button>
                     </div>
                   </div>
-
-
-                  {
-                    user?.role === 'employer' || user?.role === 'candidate' ?
-                      <div className=" mt-6 mb-6 text-center mx-auto ">
-                        <label htmlFor="conversationModal" onClick={() => handleOpenConversationModal(openMessageModal)} className=' conversationBtn' title='View Messages'>
-                          {user?.role === 'employer' ? 'See Conversation' : 'See Conversation With Employer'}
-                        </label>
-                      </div>
-                      :
-                      <>
-
-                      </>
-                  }
-
-
 
                 </>
 
@@ -852,8 +923,10 @@ const JobDetails = () => {
                   {
                     messageData?.length > 0 ?
                       <>
-                        <h1 className="mb-6 font-semibold text-center text-green-600">See Conversation with {openConversationModal.firstName} {openConversationModal.lastName} ({openConversationModal.email})</h1>
-                        {
+                        <h1 className="mb-6 font-semibold text-center text-green-600">Conversation with Candidate <span className="text-yellow-500 font-semibold ">{openConversationModal.firstName} {openConversationModal.lastName} ({openConversationModal.email})</span> </h1>
+
+
+                        {/* {
                           messageData?.map((data, index) =>
                             <div key={index}>
 
@@ -861,32 +934,94 @@ const JobDetails = () => {
                                 <p className='text-yellow-500 font-semibold text-[11px] flex justify-end items-center gap-1 relative'>
                                   <BsArrowReturnRight /> Applied For: {data?.appliedJob}
                                 </p>
-
-                                {/* <div className="mt-1 flex justify-end">
-                                  <div className="md:w-1/2 w-3/4  bg-gray-300 px-3 py-1 rounded-md mb-4 border border-primary">
-                                    <h1 className=" text-[12px] text-black font-bold ">{data.message}</h1>
-                                    <p className="text-blue-700 font-bold text-[10px] ">Sent: {data.messageSentTime}</p>
-                                  </div>
-                                </div> */}
-
-
                                 <div className="flex justify-end">
                                   <div className="chat chat-end mb-3">
-                                    <div className="chat-bubble">
-                                      <h1 className=" text-[12px] text-white font-bold ">{data.message}</h1>
-                                      <p className="text-gray-500 font-bold text-[10px] ">Sent: {data.messageSentTime}</p>
+                                    <div className="chat-bubble bg-gray-700">
+                                      <h1 className=" text-[12px] text-white font-semibold ">{data.message}</h1>
+                                      <p className="text-blue-500  font-semibold text-[10px] ">Sent: {data.messageSentTime}</p>
                                     </div>
                                   </div>
                                 </div>
-
-
-
-
                               </div>
-
                             </div>
                           )
                         }
+
+
+                        {
+                          replyMessageData && replyMessageData.length > 0 &&
+                          <>
+                            {
+                              replyMessageData.map((data, index) =>
+                                <div key={index}>
+                                  <div className="flex justify-start">
+                                    <div className="chat chat-start mb-3">
+                                      <div className="chat-bubble bg-blue-800 ">
+                                        <h1 className=" text-[12px] text-white font-semibold ">{data.reply}</h1>
+                                        <p className="text-yellow-600 font-bold text-[10px]">Sent: {data.replyTime}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              )
+                            }
+                          </>
+                        } */}
+
+
+
+
+                        {
+                          mergedArray && mergedArray.length > 0 &&
+                          <>
+                            {
+                              mergedArray.map((data, index) =>
+                                <div key={index}>
+
+                                  {
+                                    data?.message &&
+                                    <>
+                                      <div>
+                                        <p className='text-yellow-500 font-semibold text-[11px] flex justify-end items-center gap-1 relative'>
+                                          <BsArrowReturnRight /> Applied For: {data?.appliedJob}
+                                        </p>
+                                        <div className="flex justify-end">
+                                          <div className="chat chat-end mb-3">
+                                            <div className="chat-bubble bg-gray-700">
+                                              <h1 className=" text-[12px] text-white font-semibold ">{data.message}</h1>
+                                              <p className="text-blue-500  font-semibold text-[10px] ">Sent: {data.messageSentTime}</p>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </>
+                                  }
+
+                                  {
+                                    data?.reply &&
+                                    <>
+                                      <div className="flex justify-start">
+                                        <div className="chat chat-start mb-3">
+                                          <div className="chat-bubble bg-blue-800 ">
+                                            <h1 className=" text-[12px] text-white font-semibold ">{data.reply}</h1>
+                                            <p className="text-yellow-600 font-bold text-[10px]">Sent: {data.replyTime}</p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </>
+                                  }
+
+                                </div>
+                              )
+                            }
+                          </>
+                        }
+
+
+
+
+
+
                       </>
 
                       :
@@ -905,11 +1040,10 @@ const JobDetails = () => {
 
                   <div className='mt-20 flex flex-col w-full'>
                     <div className=' mb-2 flex items-center gap-3'>
-                      {/* <input value={message} onChange={(e) => setMessage(e.target.value)} className=' rounded-md h-[54px] border-primary lg:w-full md:w-full w-full mt-4' type='text'
-                      /> */}
+
                       <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Type Message..." className='text-black rounded-md  border-primary lg:w-full md:w-full w-full mt-4' type='text' rows={2} />
                       <button
-                        onClick={() => sendMessageToCandidate(openConversationModal.firstName, openConversationModal.lastName, openConversationModal.email, openConversationModal.appliedJob, openConversationModal.id)}
+                        onClick={() => { sendMessageToCandidate(openConversationModal.firstName, openConversationModal.lastName, openConversationModal.email, openConversationModal.appliedJob, openConversationModal.id) }}
                         type='button'
                         className='mt-4 -ml-[140px] grid place-items-center rounded-full px-4 flex-shrink-0 bg-primary border h-11 w-28 group transition-all text-white text-lg hover:w-[122px]'
                       >
@@ -959,18 +1093,86 @@ const JobDetails = () => {
                 <label onClick={closeConversationModalForCandidate} htmlFor="conversationModalForCandidate" className=" text-white  border-2 border-red-600 bg-red-600 hover:bg-red-600  scale-115 hover:p-0 hover:scale-120  btn btn-sm btn-circle btn-ghost absolute right-2 top-2"><span className="font-extrabold text-white">✕</span></label>
 
 
-                {/* <h1 className="text-center mb-2 text-yellow-500 font-semibold">Employer: {user?.firstName} {user?.lastName}</h1> */}
-
-
-
-
-
-
                 {
                   messageData?.length > 0 ?
                     <>
-                      <h1 className="mb-6 font-semibold text-center text-green-600">See Conversation with the Employer</h1>
+                      <h1 className="mb-6 font-semibold text-center text-green-600">Conversation with Employer For <span className="text-yellow-500  font-semibold">{position}</span> Position</h1>
+
+
+
                       {
+                        mergedArray && mergedArray.length > 0 &&
+                        <>
+                          {
+                            mergedArray.map((data, index) =>
+                              <div key={index}>
+
+                                {
+                                  data?.message &&
+                                  <>
+                                    <div>
+                                      <p className='text-yellow-500 font-semibold text-[11px] flex justify-start items-center gap-1 relative'>
+                                        <BsArrowReturnRight /> Applied For: {data?.appliedJob}
+                                      </p>
+                                      <div className="flex justify-start">
+                                        <div className="chat chat-start mb-3">
+                                          <div className="chat-bubble bg-gray-700">
+                                            <h1 className=" text-[12px] text-white font-semibold ">{data.message}</h1>
+                                            <p className="text-blue-500  font-semibold text-[10px] ">Sent: {data.messageSentTime}</p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </>
+                                }
+
+                                {
+                                  data?.reply &&
+                                  <>
+                                    <div className="flex justify-end">
+                                      <div className="chat chat-end mb-3">
+                                        <div className="chat-bubble bg-blue-800 ">
+                                          <h1 className=" text-[12px] text-white font-semibold ">{data.reply}</h1>
+                                          <p className="text-yellow-600 font-bold text-[10px]">Sent: {data.replyTime}</p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </>
+                                }
+
+                              </div>
+                            )
+                          }
+                        </>
+                      }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                      {/* {
                         messageData?.map((data, index) =>
                           <div key={index}>
 
@@ -980,18 +1182,11 @@ const JobDetails = () => {
                                 <BsArrowReturnRight /> Message For: {data?.appliedJob} Position
                               </p>
 
-                              {/* <div className="mt-1 flex justify-start">
-                                <div className="md:w-1/2 w-3/4  bg-blue-700 px-3 py-1 rounded-md mb-4 ">
-                                  <h1 className=" text-[12px] text-white font-bold ">{data.message}</h1>
-                                  <p className="text-gray-500 font-bold text-[10px] ">Sent: {data.messageSentTime}</p>
-                                </div>
-                              </div> */}
-
                               <div className="flex justify-start">
                                 <div className="chat chat-start mb-3">
-                                  <div className="chat-bubble">
-                                    <h1 className=" text-[12px] text-white font-bold ">{data.message}</h1>
-                                    <p className="text-gray-500 font-bold text-[10px] ">Sent: {data.messageSentTime}</p>
+                                  <div className="chat-bubble bg-gray-700 ">
+                                    <h1 className=" text-[12px] text-white font-semibold ">{data.message}</h1>
+                                    <p className="text-blue-500 font-semibold text-[10px] ">Sent: {data.messageSentTime}</p>
                                   </div>
                                 </div>
                               </div>
@@ -1000,7 +1195,13 @@ const JobDetails = () => {
 
                           </div>
                         )
-                      }
+                      } */}
+
+
+
+
+
+
                     </>
 
                     :
@@ -1012,25 +1213,53 @@ const JobDetails = () => {
 
 
 
+                {/* {
+                  replyMessageData && replyMessageData.length > 0 &&
+                  <>
+                    {
+                      replyMessageData.map((data, index) =>
+                        <div key={index}>
+                          <div className="flex justify-end">
+                            <div className="chat chat-end mb-3">
+                              <div className="chat-bubble bg-blue-800 ">
+                                <h1 className=" text-[12px] text-white font-semibold ">{data.reply}</h1>
+                                <p className="text-yellow-600 font-bold text-[10px]">Sent: {data.replyTime}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    }
+                  </>
+                } */}
+
+
+
 
 
 
 
                 <>
-                  <div className='mt-8 flex flex-col w-full'>
-                    <div className=' mb-5 flex items-center gap-3'>
-                      <textarea className=' rounded-md  text-black border-primary lg:w-full md:w-full w-full mt-4' type='text' rows={3} />
-                      <button
-                        type='button'
-                        className='mt-4 -ml-[140px] grid place-items-center rounded-full px-4 flex-shrink-0 bg-primary border h-11 w-28 group transition-all text-white text-lg hover:w-[122px]'
-                      >
-                        <div className="flex justify-center items-center gap-x-2">
-                          <p>Reply</p>
-                          <BiSend size={20}></BiSend>
+                  {
+                    messageData?.length > 0 &&
+                    <>
+                      <div className='mt-8 flex flex-col w-full'>
+                        <div className=' mb-5 flex items-center gap-3'>
+                          <textarea value={replyMessageByCandidate} onChange={(e) => setReplyMessageByCandidate(e.target.value)} className=' rounded-md  text-black border-primary lg:w-full md:w-full w-full mt-4' type='text' rows={3} />
+                          <button
+                            onClick={handleReplyMessageByCandidate}
+                            type='button'
+                            className='mt-4 -ml-[140px] grid place-items-center rounded-full px-4 flex-shrink-0 bg-primary border h-11 w-28 group transition-all text-white text-lg hover:w-[122px]'
+                          >
+                            <div className="flex justify-center items-center gap-x-2">
+                              <p>Reply</p>
+                              <BiSend size={20}></BiSend>
+                            </div>
+                          </button>
                         </div>
-                      </button>
-                    </div>
-                  </div>
+                      </div>
+                    </>
+                  }
 
                 </>
 
@@ -1040,83 +1269,7 @@ const JobDetails = () => {
         }
       </>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
   );

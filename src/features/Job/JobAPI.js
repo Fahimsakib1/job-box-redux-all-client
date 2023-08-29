@@ -75,7 +75,7 @@ const JobAPI = apiSlice.injectEndpoints({
             }),
             invalidatesTags: ['job']
         }),
-        
+
 
         jobStatusToggle: build.mutation({
             query: (data) => ({
@@ -94,7 +94,7 @@ const JobAPI = apiSlice.injectEndpoints({
             query: (data) => ({
                 url: `/filter/${data?.filterValue}/${data?.email}`
             }),
-            
+
         }),
 
         // add message by an employer to a candidate
@@ -108,13 +108,34 @@ const JobAPI = apiSlice.injectEndpoints({
                 },
             })
         }),
-        
+
         //get and display the messages for the employer for a particular candidate
         getMessageForEmployer: build.query({
             query: (data) => ({
                 url: `/employer/messages/${data?.appliedJob}/${data?.email}`
             }),
-            
+
+        }),
+
+
+        // reply message by a candidate to an employer for a particular job position
+        sentReplyByCandidate: build.mutation({
+            query: (data) => ({
+                url: '/replyByCandidate',
+                method: 'PATCH',
+                body: data,
+                headers: {
+                    'Content-type': 'application/json',
+                },
+            })
+        }),
+
+        //get and display the reply messages by the candidate to the employer for a particular job position
+        getReplyMessageForCandidate: build.query({
+            query: (data) => ({
+                url: `/candidate/replies/${data?.jobId}/${data?.candidateEmail}`
+            }),
+
         }),
 
 
@@ -123,4 +144,4 @@ const JobAPI = apiSlice.injectEndpoints({
 })
 
 
-export const { useAddJobMutation, useGetAllJobsQuery, useGetJobByIDQuery, useApplyJobMutation, useAskQuestionMutation, useReplyMutation, useJobStatusToggleMutation, useUserAppliedJobsQuery, useTryFilterQuery, useSentMessageByEmployerMutation, useGetMessageForEmployerQuery } = JobAPI
+export const { useAddJobMutation, useGetAllJobsQuery, useGetJobByIDQuery, useApplyJobMutation, useAskQuestionMutation, useReplyMutation, useJobStatusToggleMutation, useUserAppliedJobsQuery, useTryFilterQuery, useSentMessageByEmployerMutation, useGetMessageForEmployerQuery, useSentReplyByCandidateMutation, useGetReplyMessageForCandidateQuery } = JobAPI
