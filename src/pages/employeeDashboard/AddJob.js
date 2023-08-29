@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { FiTrash } from "react-icons/fi";
 import { useAddJobMutation } from "../../features/Job/JobAPI";
@@ -64,7 +64,7 @@ const AddJob = () => {
 
   const onSubmit = (data) => {
     console.log(data);
-    postJob({ ...data, jobStatus: true, ISOSPostedDate:ISOSPostedDate, jobPostedTime: jobPostedTime, applicantDetails: [], queries: [] })
+    postJob({ ...data, jobStatus: true, ISOSPostedDate: ISOSPostedDate, jobPostedTime: jobPostedTime, applicantDetails: [], queries: [] })
   };
 
 
@@ -77,6 +77,33 @@ const AddJob = () => {
       toast.error(error)
     }
   }, [isLoading, isSuccess, isError, error, reset]);
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  // states and function for image preview
+  // const [selectedImage, setSelectedImage] = useState(null);
+  // const [imagePreview, setImagePreview] = useState(null);
+  // const handleImageChange = (event) => {
+  //   const selectedImage = event.target.files[0];
+  //   if (selectedImage) {
+  //     const reader = new FileReader();
+  //     reader.onload = () => {
+  //       setSelectedImage(selectedImage);
+  //       setImagePreview(reader.result);
+  //     };
+  //     reader.readAsDataURL(selectedImage);
+  //   }
+  // };
 
 
 
@@ -103,6 +130,35 @@ const AddJob = () => {
       {
         user?.role === 'employer' &&
         <>
+
+          
+          
+          
+          
+          {/* This can be used as an image preview */}
+          {/* <div className="flex justify-center items-center mt-10 ">
+            <div className="flex justify-center items-center gap-x-10">
+              <div className=' text-center mx-auto '>
+                <input accept="image/*"
+                  onChange={handleImageChange}
+                  type="file"
+                  className="file-input file-input-bordered " />
+              </div>
+              {
+                imagePreview &&
+                (
+                  <div className="mx-auto text-center avatar ">
+                    <div className="w-24 rounded">
+                      <img src={imagePreview} alt="Preview" />
+                    </div>
+                  </div>
+                )
+              }
+            </div>
+          </div> */}
+
+
+
           <div className='flex justify-center items-center overflow-auto p-10'>
             <form
               className='bg-secondary/20 shadow-lg p-10 rounded-2xl flex flex-wrap gap-3 max-w-3xl justify-between'
