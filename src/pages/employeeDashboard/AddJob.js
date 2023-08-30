@@ -89,21 +89,40 @@ const AddJob = () => {
 
 
 
-  
-  // states and function for image preview
-  // const [selectedImage, setSelectedImage] = useState(null);
-  // const [imagePreview, setImagePreview] = useState(null);
-  // const handleImageChange = (event) => {
-  //   const selectedImage = event.target.files[0];
-  //   if (selectedImage) {
-  //     const reader = new FileReader();
-  //     reader.onload = () => {
-  //       setSelectedImage(selectedImage);
-  //       setImagePreview(reader.result);
-  //     };
-  //     reader.readAsDataURL(selectedImage);
-  //   }
-  // };
+
+  //states and function for image preview
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const handleImageChange = (event) => {
+    const selectedImage = event.target.files[0];
+    if (selectedImage) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setSelectedImage(selectedImage);
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(selectedImage);
+    }
+  };
+  //upload the image to imagebb and get the image link along with the image preview
+  const imageHostKey = process.env.REACT_APP_imagebb_key
+  const getImageLink = (e) => {
+    e.preventDefault();
+    console.log("Selected Image : ", selectedImage);
+    const formData = new FormData();
+    formData.append('image', selectedImage);
+    const url = `https://api.imgbb.com/1/upload?key=${imageHostKey}`;
+    fetch(url, {
+      method: 'POST',
+      body: formData
+    })
+      .then(res => res.json())
+      .then(imageData => {
+        if (imageData.success) {
+          console.log("Image Link", imageData.data.url)
+        }
+      })
+  }
 
 
 
@@ -131,37 +150,50 @@ const AddJob = () => {
         user?.role === 'employer' &&
         <>
 
-          
-          
-          
-          
+
+
+
+
           {/* This can be used as an image preview */}
-          {/* <div className="flex justify-center items-center mt-10 ">
-            <div className="flex justify-center items-center gap-x-10">
-              <div className=' text-center mx-auto '>
-                <input accept="image/*"
-                  onChange={handleImageChange}
-                  type="file"
-                  className="file-input file-input-bordered " />
-              </div>
-              {
-                imagePreview &&
-                (
-                  <div className="mx-auto text-center avatar ">
-                    <div className="w-24 rounded">
-                      <img src={imagePreview} alt="Preview" />
-                    </div>
+          {/* <div>
+            <form>
+              <div className="flex justify-center items-center mt-10 ">
+                <div className="flex justify-center items-center gap-x-10">
+                  <div className=' text-center mx-auto '>
+                    <input
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      type="file"
+                      className="file-input file-input-bordered"
+                    />
                   </div>
-                )
-              }
-            </div>
+                  {
+                    imagePreview &&
+                    (
+                      <div className="mx-auto text-center avatar ">
+                        <div className="w-20 rounded">
+                          <img src={imagePreview} alt="Preview" />
+                        </div>
+                      </div>
+                    )
+                  }
+                </div>
+              </div>
+
+              <div className='flex justify-center items-center w-full mt-3'>
+                <button onClick={getImageLink} className='btn' type='submit'>
+                  Add Image
+                </button>
+              </div>
+
+            </form>
           </div> */}
 
 
 
-          <div className='flex justify-center items-center overflow-auto p-10'>
+          <div className='flex  justify-center items-center overflow-auto p-10'>
             <form
-              className='bg-secondary/20 shadow-lg p-10 rounded-2xl flex flex-wrap gap-3 max-w-3xl justify-between'
+              className='bg-white shadow-2xl p-10 rounded-xl flex flex-wrap gap-3 max-w-3xl justify-between'
               onSubmit={handleSubmit(onSubmit)}
             >
               <h1 className='w-full text-2xl text-primary mb-5'>

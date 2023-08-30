@@ -7,8 +7,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { useSelector } from "react-redux";
 import { toast } from "react-hot-toast";
-
-
+import { PhotoProvider, PhotoView } from 'react-photo-view';
+import 'react-photo-view/dist/react-photo-view.css';
 
 
 
@@ -270,7 +270,8 @@ const JobDetails = () => {
       jobId: _id,
       replyTime: jobAppliedTime,
       candidateID: user?._id,
-      reply: replyMessageByCandidate
+      reply: replyMessageByCandidate,
+      replyImageLink: '',
     }
     setReplyData(newDetails)
 
@@ -303,7 +304,6 @@ const JobDetails = () => {
   const [sendMessage] = useSentMessageByEmployerMutation()
   const [message, setMessage] = useState('')
   const sendMessageToCandidate = (firstName, lastName, candidateEmail, appliedJob, candidateID) => {
-
     if (message === '') {
       return toast('You can not send empty text.. Please write a message')
     }
@@ -317,6 +317,7 @@ const JobDetails = () => {
       candidateID: candidateID,
       userId: user?._id,
       message: message,
+      imageLink: '',
       jobId: _id,
       messageSentTime: jobAppliedTime,
       randomNumber: getNumber.toString()
@@ -336,20 +337,19 @@ const JobDetails = () => {
 
 
   // Reply messages to a particular job position by the candidate
-
   const [replyByCandidate] = useSentReplyByCandidateMutation()
   const handleReplyMessageByCandidate = () => {
     if (replyMessageByCandidate === '') {
       return toast('You can not reply with an empty text..')
     }
-
     const details = {
       candidateEmail: user?.email,
       appliedJob: position,
       jobId: _id,
       replyTime: jobAppliedTime,
       candidateID: user?._id,
-      reply: replyMessageByCandidate
+      reply: replyMessageByCandidate,
+      replyImageLink: ''
     }
     console.log("Reply Details: ", details);
     replyByCandidate(details)
@@ -358,13 +358,141 @@ const JobDetails = () => {
   }
 
 
+
+
+
   const { data: replyMessageData } = useGetReplyMessageForCandidateQuery(replyData, { pollingInterval: 1000 })
 
 
 
 
-  // console.log("Message Data:", messageData);
-  // console.log("Reply Data: ", replyMessageData);
+
+
+
+
+
+
+
+
+  //states and function for image preview
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [imageLink, setImageLink] = useState('')
+  const handleImageChange = (event) => {
+    const selectedImage = event.target.files[0];
+    if (selectedImage) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setSelectedImage(selectedImage);
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(selectedImage);
+    }
+  };
+  //upload the image to imagebb and get the image link along with the image preview
+  const imageHostKey = process.env.REACT_APP_imagebb_key
+  const getImageLinkForEmployer = (firstName, lastName, candidateEmail, appliedJob, candidateID) => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    // console.log("Selected Image : ", selectedImage);
+    const formData = new FormData();
+    formData.append('image', selectedImage);
+    const url = `https://api.imgbb.com/1/upload?key=${imageHostKey}`;
+    fetch(url, {
+      method: 'POST',
+      body: formData
+    })
+      .then(res => res.json())
+      .then(imageData => {
+        if (imageData.success) {
+          setImageLink(imageData.data.url)
+          console.log("Image Link Inside", imageData.data.url);
+          // setRandomNumber(getNumber.toString())
+          const details = {
+            candidateFullName: firstName + ' ' + lastName,
+            candidateEmail: candidateEmail,
+            appliedJob: appliedJob,
+            employerFullName: user?.firstName + ' ' + user?.lastName,
+            employerEmail: user?.email,
+            candidateID: candidateID,
+            userId: user?._id,
+            message: '',
+            imageLink: imageData.data.url,
+            jobId: _id,
+            messageSentTime: jobAppliedTime,
+            randomNumber: getNumber.toString()
+          }
+          console.log("Details With Image Link: ", details);
+          sendMessage(details);
+          toast.success("Image Uploaded...")
+        }
+        else {
+          toast.error("Please Select Image to Upload...")
+        }
+      })
+  }
+
+
+
+  const getImageLinkForCandidateReply = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    const formData = new FormData();
+    formData.append('image', selectedImage);
+    const url = `https://api.imgbb.com/1/upload?key=${imageHostKey}`;
+    fetch(url, {
+      method: 'POST',
+      body: formData
+    })
+      .then(res => res.json())
+      .then(imageData => {
+        if (imageData.success) {
+          setImageLink(imageData.data.url)
+          console.log("Image Link Inside", imageData.data.url);
+          const details = {
+            candidateEmail: user?.email,
+            appliedJob: position,
+            jobId: _id,
+            replyTime: jobAppliedTime,
+            candidateID: user?._id,
+            replyImageLink: imageData.data.url,
+            reply: ''
+          }
+          console.log("Details With Image Link: ", details);
+          replyByCandidate(details)
+          toast.success("Image Uploaded...")
+        }
+        else {
+          toast.error("Please Select Image to Upload...")
+        }
+      })
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -388,7 +516,40 @@ const JobDetails = () => {
     mergedArray.push(replyMessageData[j]);
     j++;
   }
-  console.log("Merged Array Data: ", mergedArray);
+  // console.log("Message Data:", messageData);
+  // console.log("Reply Message Data:", replyMessageData);
+  // console.log("Merged Array Data: ", mergedArray);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -902,7 +1063,7 @@ const JobDetails = () => {
 
 
       <>
-        {
+        { //for employer to send message 
           openConversationModal &&
           <>
             <input type="checkbox" id="conversationModal" className="modal-toggle" />
@@ -912,59 +1073,10 @@ const JobDetails = () => {
                 <label onClick={closeConversationModal} htmlFor="conversationModal" className=" text-white  border-2 border-red-600 bg-red-600 hover:bg-red-600  scale-115 hover:p-0 hover:scale-120  btn btn-sm btn-circle btn-ghost absolute right-2 top-2"><span className="font-extrabold text-white">✕</span></label>
 
                 <div>
-
-
-
-
                   {
                     messageData?.length > 0 ?
                       <>
                         <h1 className="mb-6 font-semibold text-center text-green-600">Conversation with Candidate <span className="text-yellow-500 font-semibold ">{openConversationModal.firstName} {openConversationModal.lastName} ({openConversationModal.email})</span> </h1>
-
-
-                        {/* {
-                          messageData?.map((data, index) =>
-                            <div key={index}>
-
-                              <div>
-                                <p className='text-yellow-500 font-semibold text-[11px] flex justify-end items-center gap-1 relative'>
-                                  <BsArrowReturnRight /> Applied For: {data?.appliedJob}
-                                </p>
-                                <div className="flex justify-end">
-                                  <div className="chat chat-end mb-3">
-                                    <div className="chat-bubble bg-gray-700">
-                                      <h1 className=" text-[12px] text-white font-semibold ">{data.message}</h1>
-                                      <p className="text-blue-500  font-semibold text-[10px] ">Sent: {data.messageSentTime}</p>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          )
-                        }
-
-
-                        {
-                          replyMessageData && replyMessageData.length > 0 &&
-                          <>
-                            {
-                              replyMessageData.map((data, index) =>
-                                <div key={index}>
-                                  <div className="flex justify-start">
-                                    <div className="chat chat-start mb-3">
-                                      <div className="chat-bubble bg-blue-800 ">
-                                        <h1 className=" text-[12px] text-white font-semibold ">{data.reply}</h1>
-                                        <p className="text-yellow-600 font-bold text-[10px]">Sent: {data.replyTime}</p>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              )
-                            }
-                          </>
-                        } */}
-
-
 
 
                         {
@@ -975,7 +1087,8 @@ const JobDetails = () => {
                                 <div key={index}>
 
                                   {
-                                    data?.message &&
+                                    (data?.imageLink === '' && data?.message !== '' && !data?.replyImageLink && !data?.reply)
+                                    &&
                                     <>
                                       <div>
                                         <p className='text-yellow-500 font-semibold text-[11px] flex justify-end items-center gap-1 relative'>
@@ -983,27 +1096,81 @@ const JobDetails = () => {
                                         </p>
                                         <div className="chat chat-end">
                                           <div className="chat-bubble bg-gray-700 px-4">
-                                            <h1 className=" text-[12px] text-white font-semibold ">{data.message}</h1>
-                                            <p className="text-blue-500  font-semibold text-[10px] ">Sent: {data.messageSentTime}</p>
+                                            <h1 className=" text-[12px] text-white  ">{data.message}</h1>
+                                            <p className="text-blue-500 text-end font-semibold text-[9px] ">Sent: {data.messageSentTime}</p>
                                           </div>
                                         </div>
-                                        {/* <p className="text-end text-blue-500  font-semibold text-[10px] ">Sent: {data.messageSentTime}</p> */}
                                       </div>
                                     </>
                                   }
 
+
+
                                   {
-                                    data?.reply &&
+                                    (data?.message === '' && data?.imageLink !== '' && !data?.replyImageLink && !data?.reply)
+                                    &&
                                     <>
-                                      <div className="chat chat-start ">
-                                        <div className="chat-bubble bg-blue-800 px-4 ">
-                                          <h1 className=" text-[12px] text-white font-semibold ">{data.reply}</h1>
-                                          <p className="text-yellow-600 font-bold text-[10px]">Sent: {data.replyTime}</p>
+                                      <div>
+                                        <p className='text-yellow-500 font-semibold text-[11px] flex justify-end items-center gap-1 relative'>
+                                          <BsArrowReturnRight /> Applied For: {data?.appliedJob}
+                                        </p>
+                                        <div className="flex justify-end">
+                                          <div className="avatar">
+                                            <div className="w-20 rounded">
+                                              {/* <img src={data?.imageLink} alt='uploadedPicture' /> */}
+                                              <PhotoProvider>
+                                                <PhotoView src={data?.imageLink}>
+                                                  <img src={data?.imageLink} alt='uploadedPicture' />
+                                                </PhotoView>
+                                              </PhotoProvider>
+                                            </div>
+                                          </div>
                                         </div>
+                                        <p className="text-blue-500 text-end font-semibold text-[9px] ">Sent: {data.messageSentTime}</p>
                                       </div>
-                                      {/* <p className="text-yellow-600 font-bold text-[10px]">Sent: {data.replyTime}</p> */}
                                     </>
                                   }
+
+
+
+                                  {
+                                    (data?.reply !== '' && data?.replyImageLink === '' && !data?.imageLink && !data?.message)
+                                    &&
+                                    <>
+                                      <div className="chat chat-start ">
+                                        <div className="chat-bubble bg-gradient-to-r from-indigo-800  to-blue-800 px-4 ">
+                                          <h1 className=" text-[12px] text-white ">{data.reply}</h1>
+                                          <p className="text-amber-500 text-start font-semibold text-[9px]">Sent: {data.replyTime}</p>
+                                        </div>
+                                      </div>
+                                    </>
+                                  }
+
+
+
+                                  {
+                                    (data?.reply === '' && data?.replyImageLink !== '' && !data?.imageLink && !data?.message)
+                                    &&
+                                    <>
+                                      <div className="flex justify-start">
+                                        <div className="avatar">
+                                          <div className="w-20 rounded">
+                                            {/* <img src={data?.replyImageLink} alt='uploadedPicture' /> */}
+                                            <PhotoProvider>
+                                              <PhotoView src={data?.replyImageLink}>
+                                                <img src={data?.replyImageLink} alt='uploadedPicture' />
+                                              </PhotoView>
+                                            </PhotoProvider>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <p className="text-amber-500  text-start font-semibold text-[9px] ">Sent: {data.replyTime}</p>
+                                    </>
+                                  }
+
+
+
+
 
                                 </div>
                               )
@@ -1021,7 +1188,7 @@ const JobDetails = () => {
                       :
 
                       <div>
-                        <h1 className="text-center text-lg text-gray-300 my-10">You have not start conversation with {openConversationModal.firstName} {openConversationModal.lastName}</h1>
+                        <h1 className="text-center text-lg text-gray-300 my-10">You have not start conversation with Candidate {openConversationModal.firstName} {openConversationModal.lastName}</h1>
                       </div>
                   }
 
@@ -1033,8 +1200,7 @@ const JobDetails = () => {
 
 
                   <div className='mt-20 flex flex-col w-full'>
-                    <div className=' mb-2 flex items-center gap-3'>
-
+                    <div className=' mb-2 flex items-center gap-3'>s
                       <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Type Message..." className='text-black rounded-md  border-primary lg:w-full md:w-full w-full mt-4' type='text' rows={2} />
                       <button
                         onClick={() => { sendMessageToCandidate(openConversationModal.firstName, openConversationModal.lastName, openConversationModal.email, openConversationModal.appliedJob, openConversationModal.id) }}
@@ -1048,6 +1214,53 @@ const JobDetails = () => {
                       </button>
                     </div>
                   </div>
+
+
+
+
+
+
+
+
+
+                  <hr className="mx-8 text-gray-600 bg-gray-600 my-3" />
+                  <div className="mx-auto text-center flex justify-center items-center">
+                    <div className=" flex justify-center items-center gap-x-4">
+                      <div className="mt-3 flex items-center justify-center w-full">
+                        {
+                          imagePreview &&
+                          (
+                            <div className="ml-8 mr-6  text-center avatar ">
+                              <div className="h-[56px] w-16 rounded">
+                                <img src={imagePreview} alt="Preview" />
+                              </div>
+                            </div>
+                          )
+                        }
+                        <label for="dropzone-file" className="flex flex-col items-center justify-center w-[400px] h-[60px] rounded-md cursor-pointer bg-gray-700  hover:bg-gray-600">
+                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <svg className="mt-3 w-8 h-6 mb-1 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
+                            </svg>
+                            <p className="mb-2 text-sm text-gray-400 ">Click here to upload image</p>
+                          </div>
+                          <input accept="image/*"
+                            onChange={handleImageChange}
+                            id="dropzone-file"
+                            type="file"
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+
+                      <div className='w-full mt-3'>
+                        <button onClick={() => getImageLinkForEmployer(openConversationModal.firstName, openConversationModal.lastName, openConversationModal.email, openConversationModal.appliedJob, openConversationModal.id)} className='rounded-md px-4 hover:w-[134px] bg-primary h-11 w-32 group transition-all text-white ' type='submit'>
+                          Upload
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
 
 
 
@@ -1077,7 +1290,7 @@ const JobDetails = () => {
 
       <>
 
-        {
+        { //for candidate to reply the employer's messages
           conversationModalForCandidate &&
           <>
             <input type="checkbox" id="conversationModalForCandidate" className="modal-toggle" />
@@ -1086,13 +1299,10 @@ const JobDetails = () => {
 
                 <label onClick={closeConversationModalForCandidate} htmlFor="conversationModalForCandidate" className=" text-white  border-2 border-red-600 bg-red-600 hover:bg-red-600  scale-115 hover:p-0 hover:scale-120  btn btn-sm btn-circle btn-ghost absolute right-2 top-2"><span className="font-extrabold text-white">✕</span></label>
 
-
                 {
                   messageData?.length > 0 ?
                     <>
                       <h1 className="mb-6 font-semibold text-center text-green-600">Conversation with Employer For <span className="text-yellow-500  font-semibold">{position}</span> Position</h1>
-
-
 
                       {
                         mergedArray && mergedArray.length > 0 &&
@@ -1101,8 +1311,10 @@ const JobDetails = () => {
                             mergedArray.map((data, index) =>
                               <div key={index}>
 
+
                                 {
-                                  data?.message &&
+                                  (data?.message !== '' && data?.imageLink === '' && !data?.replyImageLink && !data?.reply)
+                                  &&
                                   <>
                                     <div>
                                       <p className='text-yellow-500 font-semibold text-[11px] flex justify-start items-center gap-1 relative'>
@@ -1110,85 +1322,86 @@ const JobDetails = () => {
                                       </p>
                                       <div className="chat chat-start">
                                         <div className="chat-bubble bg-gray-700 px-4">
-                                          <h1 className=" text-[12px] text-white font-semibold ">{data.message}</h1>
-                                          <p className="text-blue-500  font-semibold text-[10px] ">Sent: {data.messageSentTime}</p>
+                                          <h1 className=" text-[12px] text-white">{data.message}</h1>
+                                          <p className="text-blue-500 text-start font-semibold text-[9px] ">Sent: {data.messageSentTime}</p>
                                         </div>
                                       </div>
                                     </div>
                                   </>
                                 }
 
+
                                 {
-                                  data?.reply &&
+                                  (data?.message === '' && data?.imageLink !== '' && !data?.replyImageLink && !data?.reply)
+                                  &&
+                                  <>
+                                    <div>
+                                      <p className='text-yellow-500 font-semibold text-[11px] flex justify-start items-center gap-1 relative'>
+                                        <BsArrowReturnRight /> Applied For: {data?.appliedJob}
+                                      </p>
+                                      <div className="flex justify-start">
+                                        <div className="avatar">
+                                          <div className="w-20 rounded">
+                                            {/* <img src={data?.imageLink} alt='uploadedPicture' /> */}
+                                            <PhotoProvider>
+                                              <PhotoView src={data?.imageLink}>
+                                                <img src={data?.imageLink} alt='uploadedPicture' />
+                                              </PhotoView>
+                                            </PhotoProvider>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <p className="text-blue-500 text-start font-semibold text-[9px] ">Sent: {data.messageSentTime}</p>
+                                    </div>
+                                  </>
+                                }
+
+
+                                {
+                                  (data?.reply !== '' && data?.replyImageLink === '' && !data?.imageLink && !data?.message)
+                                  &&
                                   <>
                                     <div className="chat chat-end">
-                                      <div className="chat-bubble bg-blue-800 px-4">
-                                        <h1 className=" text-[12px] text-white font-semibold ">{data.reply}</h1>
-                                        <p className="text-yellow-600 font-bold text-[10px]">Sent: {data.replyTime}</p>
+                                      <div className="chat-bubble bg-gradient-to-r from-indigo-800  to-blue-800 px-4">
+                                        <h1 className=" text-[12px] text-white  ">{data.reply}</h1>
+                                        <p className="text-amber-500 text-end font-bold text-[9px]">Sent: {data.replyTime}</p>
                                       </div>
                                     </div>
                                   </>
                                 }
+
+
+                                {
+                                  (data?.reply === '' && data?.replyImageLink !== '' && !data?.imageLink && !data?.message)
+
+                                  &&
+                                  <>
+                                    <div className="flex justify-end">
+                                      <div className="avatar">
+                                        <div className="w-20 rounded">
+                                          {/* <img src={data?.replyImageLink} alt='uploadedPicture' /> */}
+                                          <PhotoProvider>
+                                            <PhotoView src={data?.replyImageLink}>
+                                              <img src={data?.replyImageLink} alt='uploadedPicture' />
+                                            </PhotoView>
+                                          </PhotoProvider>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <p className="text-amber-500  text-end font-semibold text-[9px] ">Sent: {data.replyTime}</p>
+                                  </>
+                                }
+
+
+
+
+
 
                               </div>
                             )
                           }
                         </>
                       }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                      {/* {
-                        messageData?.map((data, index) =>
-                          <div key={index}>
-
-                            <div>
-
-                              <p className='text-yellow-500 font-semibold text-[11px] flex justify-start items-center gap-1 relative'>
-                                <BsArrowReturnRight /> Message For: {data?.appliedJob} Position
-                              </p>
-
-                              <div className="flex justify-start">
-                                <div className="chat chat-start mb-3">
-                                  <div className="chat-bubble bg-gray-700 ">
-                                    <h1 className=" text-[12px] text-white font-semibold ">{data.message}</h1>
-                                    <p className="text-blue-500 font-semibold text-[10px] ">Sent: {data.messageSentTime}</p>
-                                  </div>
-                                </div>
-                              </div>
-
-                            </div>
-
-                          </div>
-                        )
-                      } */}
-
-
-
 
 
 
@@ -1200,31 +1413,6 @@ const JobDetails = () => {
                       <h1 className="text-center text-lg text-gray-300 my-10">No message available. Once an employer texts you only then you can have a conversation with the employer..</h1>
                     </div>
                 }
-
-
-
-                {/* {
-                  replyMessageData && replyMessageData.length > 0 &&
-                  <>
-                    {
-                      replyMessageData.map((data, index) =>
-                        <div key={index}>
-                          <div className="flex justify-end">
-                            <div className="chat chat-end mb-3">
-                              <div className="chat-bubble bg-blue-800 ">
-                                <h1 className=" text-[12px] text-white font-semibold ">{data.reply}</h1>
-                                <p className="text-yellow-600 font-bold text-[10px]">Sent: {data.replyTime}</p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )
-                    }
-                  </>
-                } */}
-
-
-
 
 
 
@@ -1252,6 +1440,70 @@ const JobDetails = () => {
                   }
 
                 </>
+
+
+
+
+                <>
+
+                  {
+                    messageData?.length > 0 &&
+                    <>
+                      <hr className="mx-8 text-gray-600 bg-gray-600 my-3" />
+                      <div className="mx-auto text-center flex justify-center items-center">
+                        <div className=" flex justify-center items-center gap-x-4">
+                          <div className="mt-3 flex items-center justify-center w-full">
+                            {
+                              imagePreview &&
+                              (
+                                <div className="ml-8 mr-6  text-center avatar ">
+                                  <div className="h-[56px] w-16 rounded">
+                                    <img src={imagePreview} alt="Preview" />
+                                  </div>
+                                </div>
+                              )
+                            }
+                            <label for="dropzone-file" className="flex flex-col items-center justify-center w-[400px] h-[60px] rounded-md cursor-pointer bg-gray-700  hover:bg-gray-600">
+                              <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                <svg className="mt-3 w-8 h-6 mb-1 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
+                                </svg>
+                                <p className="mb-2 text-sm text-gray-400 ">Click here to upload image</p>
+                              </div>
+                              <input accept="image/*"
+                                onChange={handleImageChange}
+                                id="dropzone-file"
+                                type="file"
+                                className="hidden"
+                              />
+                            </label>
+                          </div>
+
+                          <div className='w-full mt-3'>
+                            <button onClick={getImageLinkForCandidateReply} className='rounded-md px-4 hover:w-[134px] bg-primary h-11 w-32 group transition-all text-white ' type='submit'>
+                              Upload
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  }
+                </>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
               </div>
             </div>
