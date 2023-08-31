@@ -17,7 +17,7 @@ const Jobs = (name) => {
 
   // const [allJobs, setJobs] = useState()
   // useEffect(() => {
-  //   fetch('http://localhost:5000/jobs')
+  //   fetch('https://job-box-server-mu.vercel.app/jobs')
   //     .then(res => res.json())
   //     .then(data => setJobs(data))
   // }, [])

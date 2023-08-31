@@ -51,7 +51,7 @@ export const googleLogin = createAsyncThunk("auth/googleLogin", async () => {
 
 //get the user by user email
 export const getUser = createAsyncThunk("auth/getUser", async (email) => {
-    const response = await fetch(`http://localhost:5000/user/${email}`)
+    const response = await fetch(`https://job-box-server-mu.vercel.app/user/${email}`)
     const data = await response.json()
     
     if(data.status){

@@ -94,7 +94,6 @@ const JobCard = ({ jobData }) => {
 
 
   const [items, setItems] = useState(applicantDetails);
-  console.log("Items On Job Card Page:", items);
   const handleShowMessageInputField = (itemId) => {
     setItems((prevItems) =>
       prevItems.map((item) =>
@@ -179,6 +178,7 @@ const JobCard = ({ jobData }) => {
       userId: user?._id,
       message: message,
       imageLink: '',
+      isReply: false,
       jobId: _id,
       messageSentTime: time,
       randomNumber: getNumber.toString()
@@ -246,6 +246,7 @@ const JobCard = ({ jobData }) => {
             candidateID: candidateID,
             userId: user?._id,
             message: '',
+            isReply: false,
             imageLink: imageData.data.url,
             jobId: _id,
             messageSentTime: time,
@@ -509,7 +510,11 @@ const JobCard = ({ jobData }) => {
                   {
                     messageData?.length > 0 ?
                       <>
-                        <h1 className="mb-6 font-semibold text-center text-green-600">Conversation with <span className="text-yellow-500 font-semibold ">Candidate {openConversationModal.firstName} {openConversationModal.lastName}</span> ({openConversationModal.email})</h1>
+                        <h1 className="mb-3 font-semibold text-center text-green-600">Conversation with <span className="text-yellow-500 font-semibold ">Candidate {openConversationModal.firstName} {openConversationModal.lastName}</span> ({openConversationModal.email})</h1>
+
+                        <p className='text-yellow-500 font-semibold text-[15px] flex justify-center items-center gap-1 relative'>
+                          <BsArrowReturnRight /> Applied For: {position}
+                        </p>
 
 
                         {
@@ -556,9 +561,9 @@ const JobCard = ({ jobData }) => {
                                     &&
                                     <>
                                       <div>
-                                        <p className='text-yellow-500 font-semibold text-[11px] flex justify-end items-center gap-1 relative'>
+                                        {/* <p className='text-yellow-500 font-semibold text-[11px] flex justify-end items-center gap-1 relative'>
                                           <BsArrowReturnRight /> Applied For: {data?.appliedJob}
-                                        </p>
+                                        </p> */}
                                         <div className="chat chat-end">
                                           <div className="chat-bubble bg-gray-700 px-4">
                                             <h1 className=" text-[12px] text-white  ">{data.message}</h1>
@@ -576,18 +581,18 @@ const JobCard = ({ jobData }) => {
                                     &&
                                     <>
                                       <div>
-                                        <p className='text-yellow-500 font-semibold text-[11px] flex justify-end items-center gap-1 relative'>
+                                        {/* <p className='text-yellow-500 font-semibold text-[11px] flex justify-end items-center gap-1 relative'>
                                           <BsArrowReturnRight /> Applied For: {data?.appliedJob}
-                                        </p>
+                                        </p> */}
                                         <div className="flex justify-end">
                                           <div className="avatar">
                                             <div className="w-20 rounded">
-                                              {/* <img src={data?.imageLink} alt='uploadedPicture' /> */}
+                                              {/* <img src={data?.imageLink} alt='uploadedPicture' />  */}
                                               <PhotoProvider>
                                                 <PhotoView src={data?.imageLink}>
-                                                  <img src={data?.imageLink} alt='uploadedPicture' />
+                                                  <img className="hover:scale-110 cursor-pointer transition-all hover:-translate-y-2 delay-200 duration-200 ease-out hover:ease-in" src={data?.imageLink} alt='uploadedPicture' />
                                                 </PhotoView>
-                                              </PhotoProvider>
+                                              </PhotoProvider> 
                                             </div>
                                           </div>
                                         </div>
@@ -623,7 +628,7 @@ const JobCard = ({ jobData }) => {
                                             {/* <img src={data?.replyImageLink} alt='uploadedPicture' /> */}
                                             <PhotoProvider>
                                               <PhotoView src={data?.replyImageLink}>
-                                                <img src={data?.replyImageLink} alt='uploadedPicture' />
+                                                <img className="hover:scale-110 cursor-pointer transition-all hover:-translate-y-2 delay-200 duration-200 ease-out hover:ease-in" src={data?.replyImageLink} alt='uploadedPicture' />
                                               </PhotoView>
                                             </PhotoProvider>
                                           </div>

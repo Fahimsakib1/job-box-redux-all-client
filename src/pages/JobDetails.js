@@ -69,7 +69,7 @@ const JobDetails = () => {
 
   const [details, setDetails] = useState({})
   // useEffect(() => {
-  //   fetch(`http://localhost:5000/job/${id}`)
+  //   fetch(`https://job-box-server-mu.vercel.app/job/${id}`)
   //     .then(res => res.json())
   //     .then(data => setDetails(data))
   // }, [id])
@@ -121,7 +121,7 @@ const JobDetails = () => {
   useEffect(() => {
     if (!isLoading && isSuccess) {
 
-      fetch(`http://localhost:5000/job/${id}`)
+      fetch(`https://job-box-server-mu.vercel.app/job/${id}`)
         .then(res => res.json())
         .then(data => {
           if (data) {
@@ -272,6 +272,7 @@ const JobDetails = () => {
       candidateID: user?._id,
       reply: replyMessageByCandidate,
       replyImageLink: '',
+      isReply: true,
     }
     setReplyData(newDetails)
 
@@ -317,6 +318,7 @@ const JobDetails = () => {
       candidateID: candidateID,
       userId: user?._id,
       message: message,
+      isReply: false,
       imageLink: '',
       jobId: _id,
       messageSentTime: jobAppliedTime,
@@ -349,7 +351,8 @@ const JobDetails = () => {
       replyTime: jobAppliedTime,
       candidateID: user?._id,
       reply: replyMessageByCandidate,
-      replyImageLink: ''
+      replyImageLink: '',
+      isReply: true,
     }
     console.log("Reply Details: ", details);
     replyByCandidate(details)
@@ -417,6 +420,7 @@ const JobDetails = () => {
             candidateID: candidateID,
             userId: user?._id,
             message: '',
+            isReply: false,
             imageLink: imageData.data.url,
             jobId: _id,
             messageSentTime: jobAppliedTime,
@@ -456,7 +460,8 @@ const JobDetails = () => {
             replyTime: jobAppliedTime,
             candidateID: user?._id,
             replyImageLink: imageData.data.url,
-            reply: ''
+            reply: '',
+            isReply: true,
           }
           console.log("Details With Image Link: ", details);
           replyByCandidate(details)
@@ -516,51 +521,9 @@ const JobDetails = () => {
     mergedArray.push(replyMessageData[j]);
     j++;
   }
-  // console.log("Message Data:", messageData);
+  // console.log("Message Array Data:", messageData);
   // console.log("Reply Message Data:", replyMessageData);
   // console.log("Merged Array Data: ", mergedArray);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1076,11 +1039,15 @@ const JobDetails = () => {
                   {
                     messageData?.length > 0 ?
                       <>
-                        <h1 className="mb-6 font-semibold text-center text-green-600">Conversation with Candidate <span className="text-yellow-500 font-semibold ">{openConversationModal.firstName} {openConversationModal.lastName} ({openConversationModal.email})</span> </h1>
+                        <h1 className="mb-3 font-semibold text-center text-green-600">Conversation with Candidate <span className="text-yellow-500 font-semibold ">{openConversationModal.firstName} {openConversationModal.lastName} ({openConversationModal.email})</span> </h1>
+
+                        <p className='text-yellow-500 font-semibold text-[15px] flex justify-center items-center gap-1 relative'>
+                          <BsArrowReturnRight /> Applied For: {position}
+                        </p>
 
 
                         {
-                          mergedArray && mergedArray.length > 0 &&
+                          mergedArray && mergedArray?.length > 0 &&
                           <>
                             {
                               mergedArray.map((data, index) =>
@@ -1091,9 +1058,9 @@ const JobDetails = () => {
                                     &&
                                     <>
                                       <div>
-                                        <p className='text-yellow-500 font-semibold text-[11px] flex justify-end items-center gap-1 relative'>
+                                        {/* <p className='text-yellow-500 font-semibold text-[11px] flex justify-end items-center gap-1 relative'>
                                           <BsArrowReturnRight /> Applied For: {data?.appliedJob}
-                                        </p>
+                                        </p> */}
                                         <div className="chat chat-end">
                                           <div className="chat-bubble bg-gray-700 px-4">
                                             <h1 className=" text-[12px] text-white  ">{data.message}</h1>
@@ -1111,16 +1078,16 @@ const JobDetails = () => {
                                     &&
                                     <>
                                       <div>
-                                        <p className='text-yellow-500 font-semibold text-[11px] flex justify-end items-center gap-1 relative'>
+                                        {/* <p className='text-yellow-500 font-semibold text-[11px] flex justify-end items-center gap-1 relative'>
                                           <BsArrowReturnRight /> Applied For: {data?.appliedJob}
-                                        </p>
+                                        </p> */}
                                         <div className="flex justify-end">
                                           <div className="avatar">
                                             <div className="w-20 rounded">
                                               {/* <img src={data?.imageLink} alt='uploadedPicture' /> */}
                                               <PhotoProvider>
                                                 <PhotoView src={data?.imageLink}>
-                                                  <img src={data?.imageLink} alt='uploadedPicture' />
+                                                  <img className="hover:scale-110 cursor-pointer transition-all hover:-translate-y-2 delay-200 duration-200 ease-out hover:ease-in" src={data?.imageLink} alt='uploadedPicture' />
                                                 </PhotoView>
                                               </PhotoProvider>
                                             </div>
@@ -1158,7 +1125,7 @@ const JobDetails = () => {
                                             {/* <img src={data?.replyImageLink} alt='uploadedPicture' /> */}
                                             <PhotoProvider>
                                               <PhotoView src={data?.replyImageLink}>
-                                                <img src={data?.replyImageLink} alt='uploadedPicture' />
+                                                <img className="hover:scale-110 cursor-pointer transition-all hover:-translate-y-2 delay-200 duration-200 ease-out hover:ease-in" src={data?.replyImageLink} alt='uploadedPicture' />
                                               </PhotoView>
                                             </PhotoProvider>
                                           </div>
@@ -1305,7 +1272,7 @@ const JobDetails = () => {
                       <h1 className="mb-6 font-semibold text-center text-green-600">Conversation with Employer For <span className="text-yellow-500  font-semibold">{position}</span> Position</h1>
 
                       {
-                        mergedArray && mergedArray.length > 0 &&
+                        mergedArray && mergedArray?.length > 0 &&
                         <>
                           {
                             mergedArray.map((data, index) =>

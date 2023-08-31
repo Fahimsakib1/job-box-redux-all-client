@@ -20,7 +20,7 @@ const AppliedJobs = () => {
 
   const [appliedJobs, setIsAppliedJobs] = useState([])
   useEffect(() => {
-    fetch(`http://localhost:5000/applied-jobs/${user?.email}`)
+    fetch(`https://job-box-server-mu.vercel.app/applied-jobs/${user?.email}`)
       .then(res => res.json())
       .then(result => setIsAppliedJobs(result.data))
   }, [user?.email])
